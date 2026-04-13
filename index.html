@@ -48,17 +48,7 @@
 <body class="font-sans min-h-screen flex items-center justify-center p-4">
     <div class="bg-mesh"></div>
 
-    <!-- AI Loading Screen (Hidden by default for design check) -->
-    <div id="ai-loading" class="hidden fixed inset-0 z-[100] bg-obsidian flex flex-col items-center justify-center p-8 transition-all duration-1000">
-        <div class="relative w-32 h-32 mb-12">
-            <div class="absolute inset-0 border-4 border-white/5 rounded-full"></div>
-            <div class="absolute inset-0 border-t-4 border-mystic rounded-full animate-spin"></div>
-        </div>
-        <div class="text-center space-y-3">
-            <h3 class="text-2xl font-extrabold tracking-tighter text-white uppercase italic">Accessing Evidence Archive</h3>
-            <p id="loading-status" class="text-[10px] font-black uppercase tracking-[0.6em] text-mystic/60">Decryption Progress (0%)</p>
-        </div>
-    </div>
+    <!-- AI Loading Screen REMOVED for design check -->
 
     <!-- Main App Container -->
     <main class="relative z-10 w-full max-w-5xl h-[90vh] flex flex-col dossier-card rounded-[3rem] overflow-hidden slide-up">
@@ -87,7 +77,7 @@
         <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
             
             <!-- Left: Problem Panel -->
-            <aside class="w-full md:w-[42%] p-10 border-r border-white/5 flex flex-col gap-10 bg-black/20 overflow-y-auto">
+            <aside class="w-full md:w-[42%] p-10 border-r border-white/5 flex flex-col gap-10 bg-black/20 overflow-y-auto text-left">
                 <div class="space-y-6">
                     <div class="flex items-center gap-3">
                         <span id="case-id-badge" class="px-3 py-1.5 bg-mystic/10 text-mystic text-[10px] font-black uppercase tracking-widest rounded-lg border border-mystic/20">Case #01</span>
@@ -118,7 +108,7 @@
 
             <!-- Right: Chat Panel -->
             <section class="flex-grow flex flex-col bg-black/40 relative overflow-hidden">
-                <div id="chat-box" class="flex-grow overflow-y-auto p-10 space-y-10 pb-40">
+                <div id="chat-box" class="flex-grow overflow-y-auto p-10 space-y-10 pb-40 text-left">
                     <!-- AI Greetings -->
                     <div class="flex gap-6 max-w-2xl slide-up">
                         <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 shadow-inner">
@@ -143,7 +133,7 @@
                                     class="flex-grow bg-transparent border-none outline-none px-8 py-5 text-lg font-medium placeholder:text-zinc-700">
                                 <button id="send-btn" class="w-14 h-14 bg-mystic rounded-[1.5rem] flex items-center justify-center text-black hover:bg-yellow-500 transition-all active:scale-90 shadow-xl shadow-mystic/20 group-hover:shadow-mystic/40">
                                     <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" stroke-width="3"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                                    <div id="typing-indicator" class="hidden w-5 h-5 border-3 border-black/20 border-t-black rounded-full animate-spin"></div>
+                                    <div id="typing-indicator" class="hidden w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
                                 </button>
                             </div>
                         </div>
@@ -174,22 +164,11 @@
         const sendBtn = document.getElementById('send-btn');
         const sendIcon = document.getElementById('send-icon');
         const typingIndicator = document.getElementById('typing-indicator');
-        const aiLoading = document.getElementById('ai-loading');
-        const loadingStatus = document.getElementById('loading-status');
         const progressBar = document.getElementById('progress-bar');
         const progressVal = document.getElementById('progress-val');
         const statusText = document.getElementById('investigation-status');
 
         async function initAI() {
-            // Check if WebGPU is supported
-            if (!navigator.gpu) {
-                console.error("WebGPU not supported on this browser.");
-                appendMessage('ai', "죄송합니다. 현재 브라우저가 WebGPU를 지원하지 않아 AI 마스터를 불러올 수 없습니다. 최신 크롬 브라우저를 사용해 주세요.");
-                return;
-            }
-
-            aiLoading.classList.remove('hidden'); // Show loading only when starting init
-
             try {
                 engine = await webllm.CreateWebWorkerEngine(
                     new Worker(URL.createObjectURL(new Blob([`importScripts("https://esm.run/@mlc-ai/web-llm/dist/worker.js");`], { type: "text/javascript" }))),
@@ -197,20 +176,13 @@
                     {
                         initProgressCallback: (report) => {
                             const p = Math.floor(report.progress * 100);
-                            loadingStatus.innerText = `Establishing Link... ${p}%`;
-                            if (report.progress >= 1) {
-                                setTimeout(() => {
-                                    aiLoading.style.opacity = '0';
-                                    setTimeout(() => aiLoading.style.display = 'none', 1000);
-                                }, 1500);
-                            }
+                            console.log(`Loading AI Knowledge... ${p}%`);
                         }
                     }
                 );
-                resetGame();
+                console.log("AI Master Linked.");
             } catch (err) {
-                loadingStatus.innerText = "Compatibility Error: GPU required.";
-                console.error(err);
+                console.warn("WebGPU not available. AI logic disabled for UI preview.");
             }
         }
 
@@ -293,10 +265,16 @@
 
         async function handleSend() {
             const val = userInput.value.trim();
-            if (!val || !engine) return;
+            if (!val) return;
 
             appendMessage('user', val);
             userInput.value = '';
+            
+            if (!engine) {
+                setTimeout(() => appendMessage('ai', "AI 엔진이 준비되지 않았습니다. (WebGPU 환경 확인 필요)"), 500);
+                return;
+            }
+
             sendIcon.classList.add('hidden');
             typingIndicator.classList.remove('hidden');
             
@@ -309,11 +287,9 @@
                 chatHistory.push({ role: "assistant", content: reply });
                 appendMessage('ai', reply);
                 
-                if (reply.includes("정답") || reply.includes("진실")) {
-                    updateProgress(100);
-                }
+                if (reply.includes("정답") || reply.includes("진실")) updateProgress(100);
             } catch (err) {
-                appendMessage('ai', "Neural Link Error: " + err.message);
+                appendMessage('ai', "Error: " + err.message);
             } finally {
                 sendIcon.classList.remove('hidden');
                 typingIndicator.classList.add('hidden');
