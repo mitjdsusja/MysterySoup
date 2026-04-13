@@ -2,15 +2,13 @@
 <html lang="ko" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mystery Soup AI</title>
     
-    <script src="https://cdn.jsdelivr.net/gh/gzuidhof/coi-serviceworker@latest/coi-serviceworker.min.js"></script>
-    <script src="https://cdn.tailwindcss.com?v=1.6"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
+    <!-- 로컬 Tailwind 엔진 불러오기 (무조건 작동) -->
+    <script src="js/lib/tailwind.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet" crossorigin="anonymous">
     
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5614523148103624" crossorigin="anonymous"></script>
-
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -31,191 +29,134 @@
             }
         }
     </script>
+
     <style>
-        body { background-color: #020203; color: #9ca3af; overflow: hidden; letter-spacing: -0.01em; font-size: 14px; margin: 0; height: 100vh; height: -webkit-fill-available; }
-        .ambient-glow {
-            background: radial-gradient(circle at 20% 20%, #1e1b4b 0%, transparent 40%),
-                        radial-gradient(circle at 80% 80%, #0f172a 0%, transparent 40%);
-            position: fixed; inset: 0; z-index: -1;
-        }
-        .paper-texture { background-image: url("https://www.transparenttextures.com/patterns/p6.png"); opacity: 0.03; pointer-events: none; }
-        .dossier-sidebar { background: #141417; border-right: 1px solid rgba(255, 255, 255, 0.03); }
-        
-        .stamp {
-            text-transform: uppercase; font-weight: 900; font-family: 'Special Elite', cursive; opacity: 0.7;
-        }
-        .stamp-red {
-            border: 2px solid #880808; color: #880808; padding: 2px 8px;
-            transform: rotate(-10deg); display: inline-block; font-size: 10px;
-        }
-        
-        /* CASE CLOSED STAMP EFFECT */
-        #success-stamp {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-25deg) scale(5);
-            border: 8px solid #880808; color: #880808; padding: 15px 40px;
-            font-size: 40px; font-family: 'Special Elite', cursive; font-weight: 900;
-            opacity: 0; pointer-events: none; z-index: 200;
-            box-shadow: 0 0 20px rgba(136, 8, 8, 0.2);
-            background: rgba(2, 2, 3, 0.1);
-            white-space: nowrap;
-        }
-        @media (min-width: 768px) {
-            #success-stamp { font-size: 80px; padding: 20px 60px; border-width: 12px; }
-        }
+        /* 애니메이션만 CSS로 유지 (Tailwind에서 동적으로 처리하기 까다로운 부분) */
         .stamp-animate { animation: stampIn 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.28) forwards; }
-        @keyframes stampIn { to { transform: translate(-50%, -50%) rotate(-15deg) scale(1); opacity: 0.9; } }
-
-        .console-box {
-            background: rgba(15, 15, 18, 0.95); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        @keyframes stampIn { 
+            from { transform: translate(-50%, -50%) rotate(-25deg) scale(5); opacity: 0; }
+            to { transform: translate(-50%, -50%) rotate(-15deg) scale(1); opacity: 1; } 
         }
-        .chat-mask { mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent); }
-        #chat-box::-webkit-scrollbar { display: none; }
-        
-        /* AdMob Compact Styles */
-        .ad-slot { background: rgba(255, 255, 255, 0.01); border: 1px dashed rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .ad-label { font-size: 8px; font-weight: 900; text-transform: uppercase; color: rgba(255, 255, 255, 0.03); letter-spacing: 0.3em; font-family: 'Special Elite'; }
-        
-        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Custom Mobile Fixes */
-        .mobile-case-header { background: rgba(20, 20, 23, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.03); backdrop-blur: 10px; }
+        /* 폰트 적용을 위한 보조 */
+        .font-mystery { font-family: 'Special Elite', cursive; }
     </style>
 </head>
-<body class="font-sans antialiased overflow-hidden">
-    <div class="ambient-glow"></div>
-    <div class="paper-texture fixed inset-0 z-0"></div>
+<body class="bg-obsidian text-zinc-400 font-sans antialiased overflow-hidden selection:bg-blood/30">
+    
+    <!-- 배경 효과 -->
+    <div class="fixed inset-0 z-0 pointer-events-none opacity-50 bg-[radial-gradient(circle_at_20%_20%,#1e1b4b_0%,transparent_40%),radial-gradient(circle_at_80%_80%,#0f172a_0%,transparent_40%)]"></div>
 
-    <!-- Success Stamp Overlay -->
-    <div id="success-stamp">CASE CLOSED</div>
+    <!-- Success Stamp (Tailwind 클래스로만 제어) -->
+    <div id="success-stamp" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-[8px] border-blood text-blood px-10 py-4 text-4xl md:text-7xl font-black font-mystery z-[9999] bg-obsidian/90 whitespace-nowrap -rotate-12 pointer-events-none shadow-[0_0_50px_rgba(136,8,8,0.5)]">
+        CASE CLOSED
+    </div>
 
-    <div id="ai-loading" class="hidden fixed inset-0 z-[100] bg-obsidian flex flex-col items-center justify-center p-8 transition-opacity duration-1000">
-        <div class="font-mystery text-mystic/40 text-sm tracking-[0.4em] mb-8 uppercase animate-pulse text-center">Establishing Neural Link...</div>
-        <div class="w-48 h-[1px] bg-zinc-900 rounded-full overflow-hidden">
-            <div id="loading-bar" class="h-full bg-mystic w-0 transition-all duration-300"></div>
+    <!-- 1단계: 접속 승인 창 (Tailwind Only) -->
+    <div id="connection-overlay" class="fixed inset-0 z-[9000] flex flex-col items-center justify-center bg-obsidian p-6">
+        <div class="max-w-md w-full bg-zinc-900/80 border border-white/10 p-10 rounded-[2rem] backdrop-blur-2xl text-center shadow-2xl">
+            <div class="text-blood text-6xl mb-6 font-mystery">!</div>
+            <h2 class="text-white text-xl tracking-[0.3em] font-mystery mb-4 uppercase">Security Clearance</h2>
+            <p class="text-sm text-zinc-500 leading-relaxed mb-8">
+                본 노드는 로컬 분석을 위해 전용 AI 모델을 호출합니다.<br>
+                <span class="text-white font-bold">최초 접속 시 약 1.5GB의 데이터가 전송됩니다.</span>
+            </p>
+            <div class="bg-black/40 p-5 rounded-2xl text-left text-[11px] text-zinc-600 space-y-2 mb-10 border border-white/5 font-medium">
+                <p>• 전용 암호화 채널(WiFi) 권장</p>
+                <p>• 하드웨어 가속(WebGPU) 지원 필수</p>
+                <p>• 시스템 메모리 8GB 이상 최적</p>
+            </div>
+            <button id="start-connection-btn" class="w-full py-5 bg-mystic text-black font-black font-mystery rounded-2xl hover:bg-yellow-500 active:scale-95 transition-all shadow-[0_10px_30px_rgba(234,179,8,0.3)] tracking-widest text-base">
+                ESTABLISH LINK
+            </button>
+            <p class="mt-6 text-[9px] text-zinc-800 font-mystery uppercase tracking-[0.2em]">Bureau Alpha Protocol v4.2</p>
         </div>
     </div>
 
+    <!-- 2단계: AI 로딩 창 (Tailwind Only) -->
+    <div id="ai-loading" class="hidden fixed inset-0 z-[8000] flex flex-col items-center justify-center bg-obsidian p-10">
+        <div class="text-mystic/40 text-sm tracking-[0.5em] font-mystery mb-8 animate-pulse uppercase">Establishing Neural Link...</div>
+        <div class="w-64 h-0.5 bg-zinc-900 rounded-full overflow-hidden mb-4">
+            <div id="loading-bar" class="h-full bg-mystic w-0 transition-all duration-300 shadow-[0_0_15px_#EAB308]"></div>
+        </div>
+        <p id="loading-status" class="text-[10px] text-zinc-700 font-mystery uppercase tracking-widest text-center max-w-xs h-10">Initializing AI Core...</p>
+    </div>
+
+    <!-- 3단계: 실제 게임 메인 레이아웃 -->
     <div class="flex flex-col h-screen relative z-10">
         <!-- Header -->
         <header class="flex-shrink-0 border-b border-white/5 bg-black/20 backdrop-blur-md">
-            <div class="max-w-[1600px] mx-auto flex items-center justify-between py-2 px-4 md:py-3 md:px-8">
-                <div class="flex items-center gap-3 md:gap-4 group cursor-pointer" onclick="location.reload()">
-                    <div class="w-6 h-6 md:w-8 md:h-8 bg-blood flex items-center justify-center text-white font-mystery text-[10px] md:text-sm shadow-lg">S</div>
-                    <div class="hidden xs:block">
-                        <h1 class="font-mystery text-[10px] md:text-sm text-zinc-100 tracking-widest leading-none">MYSTERY SOUP</h1>
-                        <p class="text-[6px] md:text-[7px] font-black text-mystic/40 uppercase tracking-[0.2em] mt-0.5">Bureau Analysis Node</p>
+            <div class="max-w-[1600px] mx-auto flex items-center justify-between py-3 px-6">
+                <div class="flex items-center gap-4 cursor-pointer" onclick="location.reload()">
+                    <div class="w-8 h-8 bg-blood flex items-center justify-center text-white font-mystery text-sm shadow-lg">S</div>
+                    <div class="hidden sm:block">
+                        <h1 class="text-xs font-bold tracking-widest text-white font-mystery">MYSTERY SOUP</h1>
+                        <p class="text-[7px] text-mystic/40 uppercase font-black tracking-widest">Bureau Analysis Node</p>
                     </div>
                 </div>
-
-                <!-- Header Ad (728x90) - Hidden on Mobile, shown from LG -->
-                <div class="hidden lg:flex ad-slot w-[728px] h-[60px] rounded-md mx-4">
-                    <span class="ad-label text-[6px]">Bureau Network Advertisement (728x90)</span>
-                </div>
-
-                <!-- Mobile Ad Placeholder (320x50) -->
-                <div class="flex lg:hidden ad-slot w-[120px] sm:w-[200px] h-[40px] rounded-md mx-2">
-                    <span class="ad-label text-[5px]">Mobile Ad</span>
-                </div>
-
-                <div class="flex items-center gap-1.5 md:gap-3">
-                    <button id="get-hint-btn" class="px-2 py-1 md:px-4 md:py-1.5 border border-mystic/30 text-mystic/60 font-mystery text-[8px] hover:bg-mystic/10 hover:text-mystic transition-all uppercase tracking-widest">Hint</button>
-                    <button id="reveal-truth-btn" class="px-2 py-1 md:px-4 md:py-1.5 border border-blood/30 text-blood/60 font-mystery text-[8px] hover:bg-blood hover:text-white transition-all uppercase tracking-widest">End</button>
-                    <button id="random-case-btn" class="p-1 md:px-4 md:py-1.5 bg-zinc-800 text-zinc-400 font-mystery text-[8px] hover:bg-mystic hover:text-black transition-all uppercase tracking-widest flex items-center gap-2">
-                        <span class="hidden md:inline">Shuffle</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    </button>
+                <div class="flex items-center gap-2">
+                    <button id="get-hint-btn" class="text-[9px] px-4 py-1.5 border border-mystic/30 text-mystic/60 font-mystery uppercase hover:bg-mystic/10 transition-all">Hint</button>
+                    <button id="reveal-truth-btn" class="text-[9px] px-4 py-1.5 border border-blood/30 text-blood/60 font-mystery uppercase hover:bg-blood/10 transition-all">End</button>
+                    <button id="random-case-btn" class="text-[9px] px-4 py-1.5 bg-zinc-800 text-zinc-400 font-mystery uppercase hover:bg-zinc-700 transition-all">Shuffle</button>
                 </div>
             </div>
         </header>
 
-        <!-- Mobile Case Header (Visible only on small screens) -->
-        <div class="xl:hidden mobile-case-header p-4 flex-shrink-0">
-            <div class="flex items-center justify-between mb-2">
-                <div class="stamp-red !text-[8px] !px-2 !py-0.5">File: <span id="case-id-badge-mobile">#01</span></div>
-                <div class="flex items-center gap-2">
-                    <span id="progress-val-mobile" class="text-[10px] font-black text-mystic">0%</span>
-                    <div class="w-20 h-[2px] bg-zinc-900 rounded-full overflow-hidden">
-                        <div id="progress-bar-mobile" class="h-full bg-mystic w-0 transition-all duration-1000"></div>
-                    </div>
-                </div>
+        <!-- Mobile Summary -->
+        <div class="xl:hidden p-4 border-b border-white/5 bg-zinc-900/30 backdrop-blur-md">
+            <div class="flex justify-between items-center text-[9px] mb-2 uppercase tracking-[0.2em] font-mystery text-zinc-600">
+                <span class="border border-blood/30 px-2 py-0.5 text-blood">File: <span id="case-id-badge-mobile">#01</span></span>
+                <span class="text-mystic">Confidence: <span id="progress-val-mobile">0%</span></span>
             </div>
-            <h2 id="problem-text-mobile" class="text-sm font-serif font-bold text-zinc-300 leading-tight italic border-l border-blood pl-3 py-0.5 line-clamp-2 overflow-hidden">
-                <!-- Injected by JS -->
-            </h2>
+            <h2 id="problem-text-mobile" class="text-sm font-serif italic text-zinc-200 line-clamp-2 leading-relaxed"></h2>
         </div>
 
-        <main class="flex-grow flex overflow-hidden text-left relative">
-            <!-- Sidebar (Desktop Only) -->
-            <aside class="w-[340px] hidden xl:flex flex-col dossier-sidebar p-8 overflow-y-auto">
-                <div class="flex-grow space-y-10">
-                    <div class="flex justify-center mb-6">
-                        <div class="stamp-red">File: <span id="case-id-badge">#01</span></div>
+        <main class="flex-grow flex overflow-hidden relative">
+            <!-- Sidebar (Desktop) -->
+            <aside class="w-[340px] hidden xl:flex flex-col border-r border-white/5 p-10 bg-dossier/40 overflow-y-auto">
+                <div class="flex-grow space-y-12">
+                    <div class="text-center">
+                        <span class="border-2 border-blood text-blood px-5 py-2 text-[11px] font-black font-mystery -rotate-6 inline-block uppercase shadow-lg">Case File: <span id="case-id-badge">01</span></span>
                     </div>
-
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-2 text-mystic/20">
-                            <span class="font-mystery text-[8px] uppercase tracking-widest">Evidence Exhibit A</span>
-                            <div class="h-px flex-grow bg-mystic/10"></div>
-                        </div>
-                        <h2 id="problem-text" class="text-xl md:text-2xl font-serif font-black text-zinc-200 leading-[1.4] italic border-l-2 border-blood pl-6 py-1 fade-in">
-                            <!-- Injected by JS -->
-                        </h2>
+                    <div class="space-y-4 text-left">
+                        <div class="flex items-center gap-3 opacity-20"><span class="text-[8px] font-mystery uppercase tracking-widest text-white whitespace-nowrap">Evidence Exhibit</span><div class="h-px w-full bg-white"></div></div>
+                        <h2 id="problem-text" class="text-2xl font-serif font-bold italic leading-[1.6] text-zinc-100 border-l-4 border-blood pl-8 py-2"></h2>
                     </div>
-
-                    <div class="p-5 bg-black/40 border border-white/5 rounded-2xl space-y-4 shadow-inner">
+                    <div class="p-6 bg-black/60 border border-white/5 rounded-[2rem] shadow-inner space-y-6">
                         <div class="flex justify-between items-end">
-                            <span class="font-mystery text-[8px] text-zinc-600 uppercase tracking-widest">Confidence</span>
-                            <span id="progress-val" class="text-lg font-black text-mystic tracking-tighter">0%</span>
+                            <span class="text-[9px] font-mystery text-zinc-600 uppercase tracking-widest">Confidence</span>
+                            <span id="progress-val" class="text-2xl font-black font-mystery text-mystic">0%</span>
                         </div>
-                        <div class="h-[1px] w-full bg-zinc-900 rounded-full overflow-hidden">
-                            <div id="progress-bar" class="h-full bg-mystic w-0 transition-all duration-1000 shadow-[0_0_10px_#EAB308]"></div>
+                        <div class="h-0.5 bg-zinc-900 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="h-full bg-mystic w-0 transition-all duration-1000 shadow-[0_0_15px_#EAB308]"></div>
                         </div>
-                        <p id="investigation-status" class="text-[7px] font-mystery text-zinc-700 uppercase tracking-widest text-center italic">Ready for interrogation...</p>
+                        <p class="text-[8px] text-zinc-700 font-mystery uppercase tracking-widest text-center animate-pulse">Scanning Field Data...</p>
                     </div>
-                </div>
-
-                <!-- Sidebar Ad (300x600 style) -->
-                <div class="mt-8 ad-slot w-full h-[400px] rounded-xl border border-white/5">
-                    <span class="ad-label">Large Portrait Ad</span>
                 </div>
             </aside>
 
-            <!-- Chat Area -->
-            <section class="flex-grow relative flex flex-col bg-[#050507]">
-                <div id="chat-box" class="flex-grow overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-10 pb-32 md:pb-48 chat-mask">
-                    <!-- Dialogue -->
-                </div>
-
-                <!-- Console -->
-                <div class="absolute bottom-0 inset-x-0 p-4 md:p-8 bg-gradient-to-t from-obsidian via-obsidian/95 to-transparent">
-                    <div class="max-w-2xl mx-auto text-left">
-                        <div class="console-box rounded-xl md:rounded-2xl p-1 md:p-2 flex items-center shadow-2xl focus-within:ring-1 focus-within:ring-mystic/20 transition-all">
-                            <input type="text" id="user-input" placeholder="Query data..." autocomplete="off"
-                                class="flex-grow bg-transparent border-none outline-none px-4 py-2 md:px-6 md:py-3 text-sm md:text-base font-medium placeholder:text-zinc-800 text-white">
-                            <button id="send-btn" class="w-10 h-10 md:w-12 md:h-12 bg-mystic rounded-lg md:rounded-xl flex items-center justify-center text-black hover:bg-yellow-500 transition-all active:scale-90 shadow-lg mr-1">
-                                <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                                <div id="typing-indicator" class="hidden w-4 h-4 md:w-5 md:h-5 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
+            <!-- Interrogation Area -->
+            <section class="flex-grow flex flex-col bg-[#050507]">
+                <div id="chat-box" class="flex-grow overflow-y-auto p-6 md:p-12 space-y-10 pb-40 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)]"></div>
+                
+                <div class="absolute bottom-0 inset-x-0 p-6 md:p-12 bg-gradient-to-t from-obsidian via-obsidian/95 to-transparent">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="flex gap-4 bg-zinc-900/90 p-2 rounded-[1.5rem] border border-white/5 shadow-2xl focus-within:ring-1 focus-within:ring-mystic/20 transition-all">
+                            <input type="text" id="user-input" placeholder="Type interrogation query..." autocomplete="off"
+                                class="flex-grow bg-transparent border-none outline-none px-6 py-4 text-white placeholder:text-zinc-800 font-medium text-base">
+                            <button id="send-btn" class="w-14 h-14 bg-mystic rounded-2xl flex items-center justify-center text-black active:scale-90 transition-all shadow-xl hover:bg-yellow-500 group">
+                                <svg id="send-icon" class="w-6 h-6 transition-transform group-hover:translate-x-0.5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                                <div id="typing-indicator" class="hidden w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
                             </button>
                         </div>
-                        <div class="mt-2 md:mt-4 flex justify-between items-center px-4 md:px-6 opacity-20 text-[6px] md:text-[7px] font-mystery tracking-widest uppercase">
-                            <span>Encrypted Link</span>
-                            <span>Node v4.2</span>
+                        <div class="mt-4 flex justify-between px-6 opacity-20 text-[8px] font-mystery tracking-[0.3em] uppercase text-white">
+                            <span>Bureau OS v4.2</span>
+                            <span>End-to-End Encryption</span>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
-
-        <!-- Footer Ad (728x90 style) - Compact on Mobile -->
-        <footer class="flex-shrink-0 h-12 md:h-16 border-t border-white/5 bg-obsidian flex items-center justify-center">
-            <div class="ad-slot w-full max-w-4xl h-[40px] md:h-[50px] rounded-lg">
-                <span class="ad-label text-[6px] md:text-[8px]">Footer Billboard</span>
-            </div>
-        </footer>
     </div>
-
 
     <script type="module" src="js/app.js?v=1.6"></script>
 </body>

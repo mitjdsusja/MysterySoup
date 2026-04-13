@@ -90,9 +90,30 @@ export class UIController {
     triggerSuccess() {
         this.updateUIProgress(100);
         if (this.successStamp) {
+            // 초기화
+            this.successStamp.classList.remove('stamp-animate');
+            this.successStamp.style.display = 'block';
+            this.successStamp.style.opacity = '0';
+            
+            // 애니메이션 재시작 트릭
+            void this.successStamp.offsetWidth; 
+            
+            // 스타일 강제 적용
             this.successStamp.classList.add('stamp-animate');
+            this.successStamp.style.opacity = '1';
+            this.successStamp.style.pointerEvents = 'none';
+            
+            console.log("Success stamp triggered!");
+
+            // 4초 후 서서히 사라짐
             setTimeout(() => {
-                this.successStamp.classList.remove('stamp-animate');
+                this.successStamp.style.transition = 'opacity 2s ease';
+                this.successStamp.style.opacity = '0';
+                setTimeout(() => {
+                    this.successStamp.classList.remove('stamp-animate');
+                    this.successStamp.style.display = 'none';
+                    this.successStamp.style.transition = '';
+                }, 2000);
             }, 4000);
         }
     }
@@ -158,6 +179,8 @@ export class UIController {
     }
 
     syncStateToUI() {
+        if (!gameState.currentCase) return; // 데이터 로딩 전 방지
+
         const updateElements = () => {
             const idStr = `#${String(gameState.currentCase.id).padStart(2, "0")}`;
             if (this.caseBadge) this.caseBadge.innerText = idStr;
@@ -190,12 +213,23 @@ export class UIController {
         this.appendMessage('ai', "조서를 시작합니다. 현장의 증거들을 바탕으로 질문을 던지십시오.");
     }
 
-    showLoading(progress) {
+    showLoading(report) {
         if (!this.aiLoading) return;
+        const progress = report.progress;
+        const text = report.text;
+
         this.aiLoading.classList.remove('hidden');
+        this.aiLoading.style.opacity = '1';
+        
+        // 로딩바 업데이트
+        const loadingBar = document.getElementById('loading-bar');
+        if (loadingBar) loadingBar.style.width = Math.floor(progress * 100) + '%';
+
+        // 구체적인 텍스트 업데이트 (MB/GB 포함)
         if (this.loadingStatus) {
-            this.loadingStatus.innerText = `Establishing Link... ${Math.floor(progress * 100)}%`;
+            this.loadingStatus.innerText = text;
         }
+        
         if (progress >= 1) {
             setTimeout(() => {
                 this.aiLoading.style.opacity = '0';
