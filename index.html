@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mystery Soup AI | Interactive Puzzle</title>
+    <title>Mystery Soup AI</title>
     
-    <!-- Scripts & Styles -->
     <script src="https://cdn.tailwindcss.com" crossorigin></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,900;1,900&display=swap" rel="stylesheet" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Playfair+Display:ital,wght@0,900;1,900&display=swap" rel="stylesheet" crossorigin>
     
-    <!-- AdSense Script (Placeholder) -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5614523148103624" crossorigin="anonymous"></script>
 
     <script>
@@ -18,155 +16,168 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
                         serif: ['Playfair Display', 'serif'],
                     },
                     colors: {
-                        obsidian: '#09090b',
+                        obsidian: '#030303',
                         mystic: '#EAB308',
-                        surface: '#18181b'
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #09090b; color: #ececec; overflow: hidden; margin: 0; }
+        body { background-color: #030303; color: #fff; overflow: hidden; letter-spacing: -0.02em; }
         
-        /* High-end ambient background */
-        .ambient-bg {
+        /* Cinematic Background */
+        .ambient-glow {
             background: radial-gradient(circle at 0% 0%, #1e1b4b 0%, transparent 40%),
                         radial-gradient(circle at 100% 100%, #0f172a 0%, transparent 40%);
             position: fixed; inset: 0; z-index: -1;
         }
-
-        /* Glassmorphism containers */
-        .glass-card {
-            background: rgba(24, 24, 27, 0.4);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .grain {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
+            opacity: 0.03; pointer-events: none;
         }
 
-        .chat-container { height: calc(100vh - 120px); }
+        /* High-end Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-input {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Border Beam Animation */
+        .border-beam {
+            position: relative; overflow: hidden;
+        }
+        .border-beam::after {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(234, 179, 8, 0.1), transparent);
+            transform: skewX(-25deg);
+            animation: shimmer 4s infinite;
+        }
+        @keyframes shimmer { 0% { left: -100%; } 100% { left: 200%; } }
+
+        /* Animation */
+        .fade-up { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .chat-mask { mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); }
         
-        .slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-
-        /* AdMob Placeholder Styles */
-        .ad-slot { border: 1px dashed rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.02); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .ad-label { font-size: 9px; font-weight: 900; text-transform: uppercase; color: rgba(255, 255, 255, 0.1); letter-spacing: 0.2em; }
+        #chat-box::-webkit-scrollbar { display: none; }
+        .ad-slot { background: rgba(255, 255, 255, 0.01); border: 1px dashed rgba(255, 255, 255, 0.05); border-radius: 1rem; display: flex; items-center: center; justify-content: center; }
+        .ad-label { font-size: 8px; font-weight: 900; text-transform: uppercase; color: rgba(255, 255, 255, 0.05); letter-spacing: 0.3em; }
     </style>
 </head>
-<body class="font-sans antialiased">
-    <div class="ambient-bg"></div>
+<body class="font-sans antialiased selection:bg-mystic/30">
+    <div class="ambient-glow"></div>
+    <div class="grain"></div>
 
-    <!-- AI Loading Overlay (Controlled by ui.js) -->
     <div id="ai-loading" class="hidden fixed inset-0 z-[100] bg-obsidian flex flex-col items-center justify-center p-8 transition-opacity duration-1000">
         <div class="relative w-24 h-24 mb-10">
-            <div class="absolute inset-0 border-2 border-white/5 rounded-full"></div>
-            <div class="absolute inset-0 border-t-2 border-mystic rounded-full animate-spin"></div>
+            <div class="absolute inset-0 border-[1px] border-white/5 rounded-full"></div>
+            <div class="absolute inset-0 border-t-[1px] border-mystic rounded-full animate-spin"></div>
         </div>
-        <p id="loading-status" class="text-[10px] font-black uppercase tracking-[0.5em] text-mystic/60">Initializing AI Intelligence</p>
+        <p id="loading-status" class="text-[10px] font-black uppercase tracking-[0.6em] text-white/30 animate-pulse text-center">Neural Link Establishing</p>
     </div>
 
-    <!-- Main Layout -->
     <div class="flex flex-col h-screen">
-        
-        <!-- Header Banner Ad -->
-        <header class="w-full py-4 border-b border-white/5 glass-card z-50">
-            <div class="max-w-7xl mx-auto px-8 flex justify-between items-center">
-                <div class="flex items-center gap-4 group cursor-pointer" onclick="location.reload()">
-                    <div class="w-8 h-8 bg-mystic rounded-lg flex items-center justify-center text-black font-black text-xs shadow-lg shadow-mystic/20">M</div>
-                    <span class="text-sm font-black tracking-tighter uppercase group-hover:text-mystic transition-colors">Mystery Soup</span>
-                </div>
-                
-                <!-- Ad Slot: Header (Leaderboard) -->
-                <div class="hidden md:flex ad-slot w-[468px] h-[60px] rounded-lg">
-                    <span class="ad-label">Header Advertisement</span>
-                </div>
+        <!-- Global Nav -->
+        <header class="flex-shrink-0 px-10 py-6 flex justify-between items-center border-b border-white/5 z-50">
+            <div class="flex items-center gap-4 group cursor-pointer" onclick="location.reload()">
+                <div class="w-2 h-2 rounded-full bg-mystic shadow-[0_0_10px_#EAB308]"></div>
+                <span class="text-[11px] font-black uppercase tracking-[0.4em] text-white/60 group-hover:text-white transition-colors">Mystery Soup AI</span>
+            </div>
+            
+            <div class="hidden md:flex ad-slot w-[468px] h-[40px] px-4">
+                <span class="ad-label">Header Advertisement</span>
+            </div>
 
-                <div class="flex gap-2">
-                    <button onclick="revealTruth()" class="px-4 py-2 rounded-full bg-red-500/10 text-[10px] font-bold uppercase tracking-widest text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/20">Give Up</button>
-                    <button onclick="randomCase()" class="px-4 py-2 rounded-full bg-white/5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-white transition-all border border-white/10">Shuffle</button>
-                </div>
+            <div class="flex gap-3">
+                <button onclick="revealTruth()" class="px-5 py-2 rounded-full bg-red-500/10 text-[9px] font-black uppercase tracking-widest text-red-500/60 hover:text-red-500 hover:bg-red-500/20 transition-all border border-red-500/10">Reveal Truth</button>
+                <button onclick="randomCase()" class="px-5 py-2 rounded-full glass-panel text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all flex items-center gap-2 group">
+                    <span>Shuffle</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-mystic group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.001 0 01-15.357-2m15.357 2H15" /></svg>
+                </button>
             </div>
         </header>
 
-        <!-- Main Body Grid -->
         <main class="flex-grow flex overflow-hidden">
-            
-            <!-- Left Sidebar (Dossier & Sidebar Ad) -->
-            <aside class="w-[380px] hidden lg:flex flex-col border-r border-white/5 glass-card p-10 overflow-y-auto">
-                <div class="space-y-8 flex-grow">
+            <!-- Sidebar: Case Dossier -->
+            <aside class="w-[420px] hidden lg:flex flex-col border-r border-white/5 p-12 overflow-y-auto space-y-12">
+                <div class="space-y-8">
                     <div class="space-y-4">
-                        <div class="flex items-center gap-3">
-                            <span id="case-id-badge" class="px-2.5 py-1 bg-mystic/10 text-mystic text-[10px] font-black uppercase tracking-widest rounded-md border border-mystic/20">Case #01</span>
-                            <div class="flex items-center gap-1.5">
-                                <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                                <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Ongoing</span>
-                            </div>
-                        </div>
-                        <h2 id="problem-text" class="text-3xl font-serif font-black leading-[1.2] text-white italic slide-up">
+                        <span id="case-id-badge" class="inline-block text-[10px] font-black text-mystic/50 uppercase tracking-[0.3em]">Archive #01</span>
+                        <h2 id="problem-text" class="text-4xl font-serif font-black leading-[1.15] text-white italic fade-up">
                             "한 남자가 음식점에서 바다거북 수프를 주문해 한 입 먹고 자살했다. 왜일까?"
                         </h2>
+                        <div class="h-px w-12 bg-mystic/30"></div>
                     </div>
 
-                    <!-- Progress Stats -->
-                    <div class="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4">
-                        <div class="flex justify-between items-center text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-                            <span>Investigation Depth</span>
-                            <span id="progress-val" class="text-mystic">0%</span>
+                    <!-- Progress Visualization -->
+                    <div class="space-y-4 pt-4">
+                        <div class="flex justify-between items-center text-[10px] font-black text-white/20 uppercase tracking-widest">
+                            <span>Analysis Depth</span>
+                            <span id="progress-val" class="text-mystic/60">0%</span>
                         </div>
-                        <div class="h-1 w-full bg-zinc-900 rounded-full overflow-hidden">
-                            <div id="progress-bar" class="h-full bg-mystic w-0 transition-all duration-1000"></div>
+                        <div class="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="h-full bg-mystic w-0 transition-all duration-1000 shadow-[0_0_10px_#EAB308]"></div>
                         </div>
-                        <p id="investigation-status" class="text-[9px] font-bold text-zinc-600 uppercase tracking-widest text-center">Initial Site Survey</p>
+                        <p id="investigation-status" class="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] text-center">Initial Site Survey</p>
                     </div>
                 </div>
 
-                <!-- Ad Slot: Sidebar -->
-                <div class="mt-10 ad-slot w-full h-[250px] rounded-2xl border border-white/5 shadow-inner">
-                    <span class="ad-label">Sidebar Ad</span>
+                <div class="mt-auto ad-slot w-full h-[250px]">
+                    <span class="ad-label">Sidebar Placement</span>
                 </div>
             </aside>
 
-            <!-- Center Chat Stream -->
-            <section class="flex-grow relative flex flex-col bg-black/20">
-                <div id="chat-box" class="flex-grow overflow-y-auto p-10 space-y-12 pb-40">
-                    <!-- Dialogue items managed by ui.js -->
+            <!-- Center Stage -->
+            <section class="flex-grow flex flex-col relative bg-black/10">
+                <div id="chat-box" class="flex-grow overflow-y-auto p-12 space-y-12 pb-48 chat-mask">
+                    <!-- Dialogue items -->
                 </div>
 
-                <!-- Command Input -->
-                <div class="absolute bottom-0 inset-x-0 p-8 bg-gradient-to-t from-obsidian via-obsidian/90 to-transparent">
+                <!-- Cinematic Input Console -->
+                <div class="absolute bottom-0 inset-x-0 p-12 bg-gradient-to-t from-obsidian via-obsidian/90 to-transparent">
                     <div class="max-w-2xl mx-auto">
                         <div class="relative group">
                             <div class="absolute -inset-1 bg-mystic/10 blur-3xl rounded-full opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-                            <div class="relative flex items-center bg-zinc-900/80 border border-white/10 rounded-full p-2 pr-3 focus-within:border-mystic/30 transition-all shadow-2xl">
+                            <div class="relative glass-input rounded-[2.5rem] p-2.5 pr-4 flex items-center border-beam">
                                 <input type="text" id="user-input" placeholder="사건의 실마리를 질문하세요..." 
-                                    class="flex-grow bg-transparent border-none outline-none px-8 py-4 text-base font-medium placeholder:text-zinc-700">
-                                <button id="send-btn" class="w-12 h-12 bg-mystic rounded-full flex items-center justify-center text-black hover:bg-yellow-500 transition-all active:scale-90 shadow-lg">
-                                    <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" stroke-width="3"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                                    <div id="typing-indicator" class="hidden w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
+                                    class="flex-grow bg-transparent border-none outline-none px-8 py-5 text-lg font-medium placeholder:text-white/5">
+                                <button id="send-btn" class="w-14 h-14 bg-white rounded-full flex items-center justify-center text-obsidian hover:scale-105 active:scale-95 transition-all shadow-2xl">
+                                    <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" stroke-width="3"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                                    <div id="typing-indicator" class="hidden w-5 h-5 border-2 border-obsidian/20 border-t-obsidian rounded-full animate-spin"></div>
                                 </button>
                             </div>
+                        </div>
+                        <div class="mt-6 flex justify-center gap-10 opacity-10 text-[8px] font-black uppercase tracking-[0.5em]">
+                            <span>Local GPU Encrypted</span>
+                            <span>Neural Link Active</span>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
 
-        <!-- Bottom Sticky Ad -->
-        <footer class="w-full flex items-center justify-center py-2 glass-card border-t border-white/5">
-            <div class="ad-slot w-full max-w-4xl h-[50px] rounded-lg">
+        <footer class="flex-shrink-0 py-2 border-t border-white/5 flex items-center justify-center bg-white/5">
+            <div class="ad-slot w-full max-w-4xl h-[50px]">
                 <span class="ad-label">Footer Banner</span>
             </div>
         </footer>
     </div>
 
-    <!-- Application Module -->
     <script type="module" src="js/app.js"></script>
 </body>
 </html>
