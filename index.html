@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystery Soup AI | 로컬 AI 추리 게임</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mystery: ['Special Elite', 'cursive'],
+                        serif: ['Noto Serif KR', 'serif'],
+                    },
+                    colors: {
+                        detective: {
+                            black: '#0a0a0a',
+                            paper: '#f4f1ea',
+                            gold: '#d4af37',
+                            blood: '#880808'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .typing-effect::after { content: '|'; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .detective-shadow { box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); }
+    </style>
+</head>
+<body class="bg-detective-black text-slate-300 font-serif min-h-screen flex flex-col overflow-hidden">
+
+    <!-- Background Texture -->
+    <div class="fixed inset-0 pointer-events-none opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+
+    <!-- Navigation / Header -->
+    <header class="relative z-10 border-b border-white/5 py-6 px-8 flex justify-between items-center bg-black/40">
+        <h1 class="font-mystery text-2xl tracking-tighter text-detective-gold">MYSTERY SOUP AI</h1>
+        <div class="flex gap-6 text-xs uppercase tracking-widest font-bold text-slate-500">
+            <span class="hover:text-detective-gold cursor-pointer">Case Files</span>
+            <span class="hover:text-detective-gold cursor-pointer">Archive</span>
+            <span class="text-detective-blood">Live Case</span>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="relative z-10 flex-grow flex flex-col md:flex-row overflow-hidden">
+        
+        <!-- Left: Case Details (The Problem) -->
+        <section class="w-full md:w-1/3 p-8 border-r border-white/5 flex flex-col gap-8 overflow-y-auto">
+            <div class="glass-panel p-8 rounded-2xl detective-shadow">
+                <div class="flex justify-between items-start mb-6">
+                    <span class="text-[10px] bg-detective-blood/20 text-detective-blood px-2 py-1 rounded font-bold uppercase tracking-tighter border border-detective-blood/30">Active Case #0413</span>
+                    <span class="text-xs text-slate-500 font-mystery">Difficulty: ★★★★☆</span>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-4 leading-tight">바다거북 수프 (Sea Turtle Soup)</h2>
+                <p id="problem-text" class="text-lg leading-relaxed text-slate-400 italic">
+                    "한 남자가 음식점에서 바다거북 수프를 주문해 한 입 먹었다. 그는 주방장을 불러 '이것이 진짜 바다거북 수프입니까?'라고 물었고, 주방장이 '네, 그렇습니다.'라고 대답하자 남자는 집으로 돌아가 자살했다. 왜일까?"
+                </p>
+            </div>
+
+            <!-- Ad Slot (Sidebar) -->
+            <div class="w-full aspect-square glass-panel rounded-xl flex items-center justify-center border border-dashed border-white/10 opacity-50">
+                <p class="text-[10px] uppercase tracking-[0.2em] text-slate-600">Confidential Ad Space</p>
+            </div>
+        </section>
+
+        <!-- Right: The Interrogation (The Chat) -->
+        <section class="flex-grow flex flex-col bg-black/20 overflow-hidden relative">
+            
+            <!-- AI Loading Overlay (WebLLM Progress) -->
+            <div id="ai-loading" class="absolute inset-0 z-50 bg-detective-black flex flex-col items-center justify-center p-12 transition-all duration-1000">
+                <div class="w-24 h-24 mb-8 relative">
+                    <div class="absolute inset-0 border-4 border-detective-gold/20 rounded-full"></div>
+                    <div id="loading-spinner" class="absolute inset-0 border-4 border-detective-gold rounded-full border-t-transparent animate-spin"></div>
+                </div>
+                <h3 class="font-mystery text-xl text-detective-gold mb-2">Analyzing Evidence...</h3>
+                <p class="text-xs text-slate-500 uppercase tracking-widest mb-8">Loading Local Intelligence (WebLLM)</p>
+                <div class="w-64 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div id="loading-bar" class="h-full bg-detective-gold w-0 transition-all duration-300"></div>
+                </div>
+                <p id="loading-status" class="mt-4 text-[10px] font-mono text-slate-600">Model: Gemma-2b-it-q4f16_1-MLC (0%)</p>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chat-box" class="flex-grow overflow-y-auto p-8 space-y-6 scroll-smooth">
+                <!-- System Message -->
+                <div class="flex flex-col items-center py-10">
+                    <div class="w-px h-12 bg-gradient-to-b from-transparent to-white/10 mb-4"></div>
+                    <p class="text-xs text-slate-500 uppercase tracking-[0.3em]">Interrogation Started</p>
+                </div>
+                
+                <!-- Welcome Message -->
+                <div class="flex gap-4 max-w-2xl">
+                    <div class="w-10 h-10 rounded-lg bg-detective-gold/10 flex items-center justify-center text-detective-gold border border-detective-gold/20 flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl rounded-tl-none border-detective-gold/10">
+                        <p class="text-slate-300 leading-relaxed">안녕하십니까, 탐정님. 저는 이 사건의 모든 진실을 알고 있는 조력자 AI입니다. 제게 질문을 던져 사건의 실마리를 풀어보세요. 저는 오직 <b>예, 아니오, 관련 없음</b>으로만 대답할 수 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-8 bg-black/40 border-t border-white/5">
+                <div class="max-w-4xl mx-auto flex gap-4">
+                    <input type="text" id="user-input" placeholder="사건에 대해 질문하세요..." class="flex-grow bg-white/5 border border-white/10 rounded-xl px-6 py-4 outline-none focus:border-detective-gold/50 transition-all font-serif">
+                    <button id="send-btn" class="bg-detective-gold hover:bg-yellow-600 text-detective-black font-extrabold px-8 py-4 rounded-xl transition-all uppercase tracking-widest text-sm flex items-center gap-2">
+                        Send
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                    </button>
+                </div>
+                <div class="max-w-4xl mx-auto mt-4 flex justify-between items-center text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+                    <span>Questions Remaining: <span class="text-slate-400">10</span></span>
+                    <button class="text-detective-gold hover:underline">Get Hint (Watch Ad)</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Ad Banner -->
+    <footer class="relative z-10 border-t border-white/5 h-20 flex items-center justify-center bg-black/60">
+        <div class="w-full max-w-4xl h-12 bg-white/5 rounded-lg border border-dashed border-white/10 flex items-center justify-center">
+            <span class="text-[10px] text-slate-700 uppercase tracking-[0.5em]">Global Ad Banner Placement</span>
+        </div>
+    </footer>
+
+    <!-- WebLLM Scripts -->
+    <script type="module">
+        import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+
+        const loadingBar = document.getElementById('loading-bar');
+        const loadingStatus = document.getElementById('loading-status');
+        const aiLoading = document.getElementById('ai-loading');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatBox = document.getElementById('chat-box');
+
+        const selectedModel = "gemma-2b-it-q4f16_1-MLC";
+        let engine;
+
+        // 시스템 프롬프트: 바다거북 스프 게임의 룰을 정의합니다.
+        const systemPrompt = `
+            너는 지금부터 '바다거북 스프' 게임의 마스터야. 
+            상황: 한 남자가 음식점에서 바다거북 수프를 주문해 한 입 먹었다. 그는 주방장을 불러 '이것이 진짜 바다거북 수프입니까?'라고 물었고, 주방장이 '네, 그렇습니다.'라고 대답하자 남자는 집으로 돌아가 자살했다.
+            진실: 과거에 남자는 아내와 함께 조난을 당했다. 아내가 죽고 동료가 바다거북 수프라며 고기를 주어 남자는 살아남았다. 하지만 나중에 음식점에서 진짜 바다거북 수프를 먹어보니 과거에 먹었던 맛과 달랐고, 자신이 먹은 것이 아내의 인육이었다는 사실을 깨닫고 절망하여 자살한 것이다.
+
+            너의 역할:
+            1. 사용자의 질문에 대해 오직 '예', '아니오', '관련 없습니다' 중 하나로만 대답한다.
+            2. 사용자가 진실에 도달하면 '정답입니다! 사건의 진실은 이렇습니다...' 라며 전체 스토리를 설명해준다.
+            3. 잡담이나 추가 설명은 절대 하지 않는다.
+        `;
+
+        async function initAI() {
+            try {
+                engine = await webllm.CreateWebWorkerEngine(
+                    new Worker(new URL("https://esm.run/@mlc-ai/web-llm/dist/worker.js", import.meta.url)),
+                    selectedModel,
+                    {
+                        initProgressCallback: (report) => {
+                            const progress = Math.floor(report.progress * 100);
+                            loadingBar.style.width = progress + '%';
+                            loadingStatus.innerText = `${report.text} (${progress}%)`;
+                            if (progress >= 100) {
+                                setTimeout(() => {
+                                    aiLoading.style.opacity = '0';
+                                    setTimeout(() => aiLoading.style.display = 'none', 1000);
+                                }, 1000);
+                            }
+                        }
+                    }
+                );
+            } catch (err) {
+                loadingStatus.innerText = "Error: " + err.message;
+                loadingStatus.classList.add('text-red-500');
+            }
+        }
+
+        function appendMessage(role, text) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex gap-4 ${role === 'user' ? 'justify-end' : ''} max-w-2xl ${role === 'user' ? 'ml-auto' : ''} animate-fade-in`;
+            
+            const isAI = role === 'ai';
+            const html = `
+                ${isAI ? `
+                    <div class="w-10 h-10 rounded-lg bg-detective-gold/10 flex items-center justify-center text-detective-gold border border-detective-gold/20 flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                    </div>` : ''}
+                <div class="glass-panel p-5 rounded-2xl ${isAI ? 'rounded-tl-none border-detective-gold/10' : 'rounded-tr-none bg-detective-gold text-detective-black border-none'}">
+                    <p class="leading-relaxed font-medium whitespace-pre-wrap">${text}</p>
+                </div>
+            `;
+            wrapper.innerHTML = html;
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        const chatHistory = [{ role: "system", content: systemPrompt }];
+
+        sendBtn.addEventListener('click', async () => {
+            const val = userInput.value.trim();
+            if (!val || !engine) return;
+
+            appendMessage('user', val);
+            userInput.value = '';
+            sendBtn.disabled = true;
+            sendBtn.classList.add('opacity-50');
+
+            chatHistory.push({ role: "user", content: val });
+
+            try {
+                const chunks = await engine.chat.completions.create({
+                    messages: chatHistory,
+                    temperature: 0.1, // 보수적인 답변 유도 (예/아니오)
+                });
+                const reply = chunks.choices[0].message.content;
+                chatHistory.push({ role: "assistant", content: reply });
+                appendMessage('ai', reply);
+            } catch (err) {
+                appendMessage('ai', "통신 오류가 발생했습니다: " + err.message);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.classList.remove('opacity-50');
+            }
+        });
+
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendBtn.click();
+        });
+
+        initAI();
+    </script>
+</body>
+</html>
