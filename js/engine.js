@@ -7,6 +7,10 @@ export class AIEngine {
     }
 
     async init(progressCallback) {
+        if (!navigator.gpu) {
+            console.error("WebGPU not supported.");
+            return false;
+        }
         try {
             this.engine = await webllm.CreateWebWorkerEngine(
                 new Worker(URL.createObjectURL(new Blob([`importScripts("https://esm.run/@mlc-ai/web-llm/dist/worker.js");`], { type: "text/javascript" }))),
@@ -15,22 +19,17 @@ export class AIEngine {
             );
             return true;
         } catch (err) {
-            console.error("AI Engine Init Error:", err);
+            console.error("AI Init Error:", err);
             return false;
         }
     }
 
     async getCompletion(messages) {
-        if (!this.engine) return "AI Engine not initialized.";
-        try {
-            const chunks = await this.engine.chat.completions.create({
-                messages: messages,
-                temperature: 0.1
-            });
-            return chunks.choices[0].message.content;
-        } catch (err) {
-            console.error("Chat Completion Error:", err);
-            return "Error: " + err.message;
-        }
+        if (!this.engine) return "AI Engine not ready.";
+        const chunks = await this.engine.chat.completions.create({
+            messages: messages,
+            temperature: 0.1
+        });
+        return chunks.choices[0].message.content;
     }
 }
