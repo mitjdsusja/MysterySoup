@@ -15,14 +15,19 @@ export class UIController {
         this.loadingStatus = document.getElementById('loading-status');
 
         this.initEvents();
-        this.resetChat();
+        // Initialize with current game state
+        this.syncStateToUI();
     }
 
     initEvents() {
-        this.sendBtn.onclick = () => this.handleSend();
-        this.userInput.onkeypress = (e) => { if (e.key === 'Enter') this.handleSend(); };
-        document.getElementById('random-case-btn').onclick = () => this.randomCase();
-        document.getElementById('reveal-truth-btn').onclick = () => this.revealTruth();
+        if (this.sendBtn) this.sendBtn.onclick = () => this.handleSend();
+        if (this.userInput) {
+            this.userInput.onkeypress = (e) => { if (e.key === 'Enter') this.handleSend(); };
+        }
+        const randomBtn = document.getElementById('random-case-btn');
+        const revealBtn = document.getElementById('reveal-truth-btn');
+        if (randomBtn) randomBtn.onclick = () => this.randomCase();
+        if (revealBtn) revealBtn.onclick = () => this.revealTruth();
     }
 
     async handleSend() {
@@ -33,7 +38,7 @@ export class UIController {
         this.userInput.value = '';
         
         if (!this.ai.engine) {
-            this.appendMessage('ai', "AI 엔진이 준비 중입니다. 잠시만 기다려 주세요.");
+            this.appendMessage('ai', "AI 시스템이 아직 초기화 중입니다. 서류 해독이 끝날 때까지 기다려 주십시오.");
             return;
         }
 
@@ -44,36 +49,37 @@ export class UIController {
         try {
             const systemMsg = {
                 role: "system",
-                content: `너는 바다거북 스프 게임 마스터야. 상황: ${gameState.currentCase.problem} / 진실: ${gameState.currentCase.truth}. 규칙: 1. 오직 '예', '아니오', '관련 없습니다' 중 하나로만 답하라. 2. 진실에 도달하면 정답임을 알리고 전체 스토리를 설명하라. 3. 한국어로만 답하라.`
+                content: `너는 바다거북 스프 게임 마스터야. 상황: ${gameState.currentCase.problem} / 진실: ${gameState.currentCase.truth}. 규칙: 1. 오직 '예', '아니오', '관련 없습니다' 중 하나로만 답하라. 2. 핵심 진실에 도달하면 정답임을 알리고 전체 스토리를 설명하라. 3. 한국어로만 답하라. 분위기는 차분하고 냉철한 수사관 조력자처럼 하라.`
             };
             const reply = await this.ai.getCompletion([systemMsg, ...gameState.chatHistory]);
             gameState.chatHistory.push({ role: "assistant", content: reply });
             this.appendMessage('ai', reply);
             if (reply.includes("정답") || reply.includes("진실")) this.updateUIProgress(100);
         } catch (err) {
-            this.appendMessage('ai', "Error: " + err.message);
+            this.appendMessage('ai', "데이터 처리 오류: " + err.message);
         } finally {
             this.setLoading(false);
         }
     }
 
     appendMessage(role, text) {
+        if (!this.chatBox) return;
         const div = document.createElement('div');
-        div.className = `flex gap-6 ${role === 'user' ? 'justify-end' : ''} w-full slide-up`;
+        div.className = `flex gap-8 ${role === 'user' ? 'justify-end' : 'justify-start'} w-full fade-in`;
         const isAI = role === 'ai';
         
         div.innerHTML = isAI ? `
-            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                <div class="w-1.5 h-1.5 bg-mystic rounded-full shadow-[0_0_10px_#EAB308]"></div>
+            <div class="w-14 h-14 rounded-sm bg-blood/10 border border-blood/20 flex items-center justify-center flex-shrink-0">
+                <div class="w-2 h-2 bg-blood animate-pulse shadow-[0_0_10px_#880808]"></div>
             </div>
-            <div class="space-y-2">
-                <p class="text-[10px] font-black text-mystic/60 uppercase tracking-widest">Bureau Intelligence</p>
-                <div class="text-zinc-300 leading-relaxed text-lg font-medium max-w-2xl whitespace-pre-wrap">${text}</div>
+            <div class="space-y-3">
+                <p class="font-mystery text-[10px] text-mystic/60 uppercase tracking-widest">Bureau Intelligence Agent</p>
+                <div class="text-zinc-300 leading-relaxed text-xl font-medium max-w-3xl whitespace-pre-wrap font-serif italic">${text}</div>
             </div>
         ` : `
-            <div class="space-y-2 text-right">
-                <p class="text-[10px] font-black text-white/20 uppercase tracking-widest">Investigator</p>
-                <div class="bg-white text-black px-6 py-3 rounded-full text-base font-bold shadow-2xl inline-block">${text}</div>
+            <div class="space-y-3 text-right">
+                <p class="font-mystery text-[10px] text-zinc-600 uppercase tracking-widest">Special Investigator</p>
+                <div class="bg-zinc-100 text-black px-8 py-4 rounded-sm text-xl font-bold shadow-2xl inline-block border-b-4 border-zinc-400">${text}</div>
             </div>
         `;
         
@@ -83,23 +89,26 @@ export class UIController {
 
     updateUIProgress(newVal) {
         const p = updateProgress(newVal);
-        this.progressBar.style.width = p + '%';
-        this.progressVal.innerText = p + '%';
-        if (p > 80) this.statusText.innerText = "Conclusion Reached";
-        else if (p > 50) this.statusText.innerText = "Critical Clue Found";
-        else if (p > 20) this.statusText.innerText = "Analyzing Evidence";
+        if (this.progressBar) this.progressBar.style.width = p + '%';
+        if (this.progressVal) this.progressVal.innerText = p + '%';
+        if (this.statusText) {
+            if (p >= 100) this.statusText.innerText = "Conclusion Finalized";
+            else if (p > 70) this.statusText.innerText = "Critical Breakthrough";
+            else if (p > 30) this.statusText.innerText = "Connecting Evidence";
+            else this.statusText.innerText = "Processing Testimonies";
+        }
     }
 
     setLoading(isLoading) {
         const icon = document.getElementById('send-icon');
         const spinner = document.getElementById('typing-indicator');
         if (isLoading) {
-            icon.classList.add('hidden');
-            spinner.classList.remove('hidden');
+            if (icon) icon.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
             this.sendBtn.disabled = true;
         } else {
-            icon.classList.remove('hidden');
-            spinner.classList.add('hidden');
+            if (icon) icon.classList.remove('hidden');
+            if (spinner) spinner.classList.add('hidden');
             this.sendBtn.disabled = false;
         }
     }
@@ -108,31 +117,39 @@ export class UIController {
         const otherCases = cases.filter(c => c.id !== gameState.currentCase.id);
         const nextCase = otherCases[Math.floor(Math.random() * otherCases.length)];
         setCurrentCase(nextCase);
+        this.syncStateToUI();
+    }
 
-        this.problemText.style.opacity = '0';
-        setTimeout(() => {
-            this.caseBadge.innerText = `Archive #${String(nextCase.id).padStart(2, '0')}`;
-            this.problemText.innerText = nextCase.problem;
-            this.problemText.style.opacity = '1';
-            this.resetChat();
-        }, 400);
+    syncStateToUI() {
+        if (this.problemText) {
+            this.problemText.style.opacity = '0';
+            setTimeout(() => {
+                this.caseBadge.innerText = `#${String(gameState.currentCase.id).padStart(2, '0')}`;
+                this.problemText.innerText = gameState.currentCase.problem;
+                this.problemText.style.opacity = '1';
+                this.resetChat();
+            }, 400);
+        }
     }
 
     revealTruth() {
-        this.appendMessage('ai', `[진실 확인] 사건의 전말은 이렇습니다: \n\n${gameState.currentCase.truth}`);
+        this.appendMessage('ai', `[기밀 해제] 사건의 전말은 다음과 같습니다: \n\n${gameState.currentCase.truth}`);
         this.updateUIProgress(100);
     }
 
     resetChat() {
-        this.chatBox.innerHTML = '';
+        if (this.chatBox) this.chatBox.innerHTML = '';
         this.updateUIProgress(0);
-        this.statusText.innerText = "Initial Site Survey";
-        this.appendMessage('ai', "조사를 시작합니다, 수사관님. 질문을 던져 진실을 파헤치십시오.");
+        if (this.statusText) this.statusText.innerText = "Awaiting interrogation start...";
+        this.appendMessage('ai', "조서를 시작합니다, 수사관님. 사건 현장의 단서들을 조합하여 진실을 파헤치십시오.");
     }
 
     showLoading(progress) {
+        if (!this.aiLoading) return;
         this.aiLoading.classList.remove('hidden');
-        this.loadingStatus.innerText = `Establishing Link... ${Math.floor(progress * 100)}%`;
+        if (this.loadingStatus) {
+            this.loadingStatus.innerText = `Establishing Neural Link... ${Math.floor(progress * 100)}%`;
+        }
         if (progress >= 1) {
             setTimeout(() => {
                 this.aiLoading.style.opacity = '0';
