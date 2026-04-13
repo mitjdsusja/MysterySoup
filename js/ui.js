@@ -10,7 +10,14 @@ export class UIController {
         this.progressVal = document.getElementById('progress-val');
         this.statusText = document.getElementById('investigation-status');
         this.problemText = document.getElementById('problem-text');
+        this.problemTextMobile = document.getElementById('problem-text-mobile');
         this.caseBadge = document.getElementById('case-id-badge');
+        this.caseBadgeMobile = document.getElementById('case-id-badge-mobile');
+        this.progressBar = document.getElementById('progress-bar');
+        this.progressBarMobile = document.getElementById('progress-bar-mobile');
+        this.progressVal = document.getElementById('progress-val');
+        this.progressValMobile = document.getElementById('progress-val-mobile');
+        
         this.aiLoading = document.getElementById('ai-loading');
         this.loadingStatus = document.getElementById('loading-status');
         this.successStamp = document.getElementById('success-stamp');
@@ -118,7 +125,9 @@ export class UIController {
     updateUIProgress(newVal) {
         const p = updateProgress(newVal);
         if (this.progressBar) this.progressBar.style.width = p + '%';
+        if (this.progressBarMobile) this.progressBarMobile.style.width = p + '%';
         if (this.progressVal) this.progressVal.innerText = p + '%';
+        if (this.progressValMobile) this.progressValMobile.innerText = p + '%';
         if (this.statusText) {
             if (p >= 100) this.statusText.innerText = "CASE ARCHIVED";
             else if (p > 70) this.statusText.innerText = "BREAKTHROUGH CONFIRMED";
@@ -149,14 +158,23 @@ export class UIController {
     }
 
     syncStateToUI() {
+        const updateElements = () => {
+            const idStr = `#${String(gameState.currentCase.id).padStart(2, "0")}`;
+            if (this.caseBadge) this.caseBadge.innerText = idStr;
+            if (this.caseBadgeMobile) this.caseBadgeMobile.innerText = idStr;
+
+            if (this.problemText) this.problemText.innerText = gameState.currentCase.problem;
+            if (this.problemTextMobile) this.problemTextMobile.innerText = gameState.currentCase.problem;
+
+            if (this.problemText) this.problemText.style.opacity = "1";
+            this.resetChat();
+        };
+
         if (this.problemText) {
-            this.problemText.style.opacity = '0';
-            setTimeout(() => {
-                this.caseBadge.innerText = `#${String(gameState.currentCase.id).padStart(2, '0')}`;
-                this.problemText.innerText = gameState.currentCase.problem;
-                this.problemText.style.opacity = '1';
-                this.resetChat();
-            }, 400);
+            this.problemText.style.opacity = "0";
+            setTimeout(updateElements, 400);
+        } else {
+            updateElements();
         }
     }
 
