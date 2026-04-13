@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mystery Soup AI</title>
-    <!-- Tailwind & Fonts: Removed 'crossorigin' to ensure local file compatibility -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
     <script>
@@ -26,28 +25,24 @@
     </script>
     <style>
         body { background-color: #050505; color: #fff; overflow: hidden; margin: 0; }
-        
         .bg-mesh {
             background: radial-gradient(circle at 0% 0%, #1e1b4b 0%, transparent 35%),
                         radial-gradient(circle at 100% 100%, #0f172a 0%, transparent 35%);
             position: fixed; inset: 0; z-index: -1;
         }
-
         .dossier-card {
-            background: rgba(15, 15, 18, 0.7);
+            background: rgba(15, 15, 18, 0.75);
             backdrop-filter: blur(40px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.9);
         }
-
         .bubble-ai { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); }
         .bubble-user { background: linear-gradient(135deg, #EAB308, #CA8A04); color: #000; font-weight: 700; }
-
         .slide-up { animation: slideUp 0.5s ease-out forwards; }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
         #chat-box::-webkit-scrollbar { width: 4px; }
         #chat-box::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        .progress-glow { box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); }
     </style>
 </head>
 <body class="font-sans min-h-screen flex items-center justify-center p-4">
@@ -60,87 +55,97 @@
             <div class="absolute inset-0 border-t-4 border-mystic rounded-full animate-spin"></div>
         </div>
         <div class="text-center space-y-3">
-            <h3 class="text-2xl font-extrabold tracking-tighter text-white uppercase">Initializing Investigation</h3>
-            <p id="loading-status" class="text-[10px] font-black uppercase tracking-[0.6em] text-mystic/60">Local Intelligence Node (0%)</p>
+            <h3 class="text-2xl font-extrabold tracking-tighter text-white uppercase italic">Accessing Evidence Archive</h3>
+            <p id="loading-status" class="text-[10px] font-black uppercase tracking-[0.6em] text-mystic/60">Decryption Progress (0%)</p>
         </div>
     </div>
 
-    <!-- Main Content Container -->
+    <!-- Main App Container -->
     <main class="relative z-10 w-full max-w-5xl h-[90vh] flex flex-col dossier-card rounded-[3rem] overflow-hidden slide-up">
         
         <!-- App Header -->
         <header class="flex-shrink-0 px-10 py-8 flex justify-between items-center border-b border-white/5 bg-white/5">
             <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-mystic rounded-2xl flex items-center justify-center shadow-lg shadow-mystic/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <div class="w-10 h-10 bg-mystic rounded-2xl flex items-center justify-center shadow-lg shadow-mystic/30 transform hover:scale-110 transition-transform cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
                 <div>
-                    <h1 class="text-lg font-black tracking-tighter uppercase">Mystery Soup <span class="text-mystic italic">AI</span></h1>
-                    <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-none mt-1">Intelligence Division</p>
+                    <h1 class="text-lg font-black tracking-tighter uppercase leading-none">Mystery Soup <span class="text-mystic italic">AI</span></h1>
+                    <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1.5">Elite Investigation Bureau</p>
                 </div>
             </div>
-            <button onclick="randomCase()" class="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-mystic/30 transition-all flex items-center gap-3 group">
-                <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400 group-hover:text-white">Shuffle Database</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-mystic group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.001 0 01-15.357-2m15.357 2H15" /></svg>
-            </button>
+            <div class="flex gap-3">
+                <button onclick="revealTruth()" class="px-5 py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500 hover:text-white transition-all">Reveal Truth</button>
+                <button onclick="randomCase()" class="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-mystic/30 transition-all flex items-center gap-3 group">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400 group-hover:text-white">Shuffle</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-mystic group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.001 0 01-15.357-2m15.357 2H15" /></svg>
+                </button>
+            </div>
         </header>
 
-        <!-- Game Content -->
+        <!-- Game Body -->
         <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
             
-            <!-- Left: Problem Description -->
-            <aside class="w-full md:w-[42%] p-10 border-r border-white/5 flex flex-col gap-8 bg-black/20 overflow-y-auto">
+            <!-- Left: Problem Panel -->
+            <aside class="w-full md:w-[42%] p-10 border-r border-white/5 flex flex-col gap-10 bg-black/20 overflow-y-auto">
                 <div class="space-y-6">
-                    <div class="flex items-center gap-2">
-                        <span id="case-id-badge" class="px-3 py-1 bg-mystic/10 text-mystic text-[10px] font-black uppercase tracking-widest rounded-lg border border-mystic/20">Case #01</span>
-                        <span class="px-3 py-1 bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-green-500/20 text-[10px]">Open</span>
+                    <div class="flex items-center gap-3">
+                        <span id="case-id-badge" class="px-3 py-1.5 bg-mystic/10 text-mystic text-[10px] font-black uppercase tracking-widest rounded-lg border border-mystic/20">Case #01</span>
+                        <div class="flex gap-1">
+                            <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                            <span class="text-[10px] font-black text-green-500 uppercase tracking-widest">Active</span>
+                        </div>
                     </div>
-                    <h2 id="problem-text" class="text-3xl md:text-4xl font-serif font-black leading-tight text-white italic transition-all duration-500">
+                    <h2 id="problem-text" class="text-3xl md:text-4xl font-serif font-black leading-tight text-white italic transition-all duration-700">
                         "한 남자가 음식점에서 바다거북 수프를 주문해 한 입 먹고 자살했다. 왜일까?"
                     </h2>
-                    <div class="h-1 w-16 bg-mystic rounded-full opacity-50"></div>
+                    <div class="h-1 w-20 bg-mystic rounded-full opacity-40"></div>
                 </div>
 
-                <div class="mt-auto pt-10">
-                    <div class="p-6 rounded-[2rem] bg-white/5 border border-white/5 space-y-4">
+                <div class="mt-auto space-y-6">
+                    <div class="p-6 rounded-[2.5rem] bg-white/5 border border-white/5 space-y-5">
                         <div class="flex justify-between items-center">
-                            <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Investigation Progress</p>
-                            <span class="text-xs font-bold text-mystic">15%</span>
+                            <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Investigation Progress</p>
+                            <span id="progress-val" class="text-sm font-black text-mystic tracking-tighter">0%</span>
                         </div>
-                        <div class="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden">
-                            <div class="h-full bg-mystic w-[15%] rounded-full shadow-[0_0_15px_rgba(234,179,8,0.5)]"></div>
+                        <div class="h-2 w-full bg-zinc-900 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="h-full bg-mystic w-0 rounded-full transition-all duration-1000 progress-glow"></div>
                         </div>
+                        <p id="investigation-status" class="text-[9px] font-bold text-zinc-600 uppercase tracking-widest text-center">Initial Site Survey</p>
                     </div>
                 </div>
             </aside>
 
-            <!-- Right: Interrogation Chat -->
-            <section class="flex-grow flex flex-col bg-black/40 relative">
-                <div id="chat-box" class="flex-grow overflow-y-auto p-10 space-y-8 pb-32">
-                    <!-- AI Initial Message -->
-                    <div class="flex gap-5 max-w-2xl slide-up">
-                        <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                            <div class="w-1.5 h-1.5 bg-mystic rounded-full animate-pulse shadow-[0_0_10px_#EAB308]"></div>
+            <!-- Right: Chat Panel -->
+            <section class="flex-grow flex flex-col bg-black/40 relative overflow-hidden">
+                <div id="chat-box" class="flex-grow overflow-y-auto p-10 space-y-10 pb-40">
+                    <!-- AI Greetings -->
+                    <div class="flex gap-6 max-w-2xl slide-up">
+                        <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 shadow-inner">
+                            <div class="w-2 h-2 bg-mystic rounded-full animate-pulse shadow-[0_0_10px_#EAB308]"></div>
                         </div>
-                        <div class="space-y-2">
-                            <p class="text-[10px] font-black text-mystic uppercase tracking-widest">AI Master</p>
-                            <div class="bubble-ai p-6 rounded-[2rem] rounded-tl-none text-zinc-300 leading-relaxed text-base font-medium">
-                                "조사를 시작합니다, 탐정님. 이 사건의 진실은 오직 당신의 예리한 질문 끝에 있습니다. 저는 <b>예, 아니오, 관련 없음</b>으로만 대답하겠습니다."
+                        <div class="space-y-3">
+                            <p class="text-[10px] font-black text-mystic uppercase tracking-widest">Bureau Intelligence</p>
+                            <div class="bubble-ai p-7 rounded-[2.5rem] rounded-tl-none text-zinc-300 leading-relaxed text-lg font-medium shadow-2xl">
+                                "조사를 시작합니다, 수사관님. 당신의 질문은 곧 사건의 열쇠가 될 것입니다. 저는 오직 <b>예, 아니오, 관련 없음</b>으로만 답변하겠습니다. 진실을 밝혀내십시오."
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Input Console -->
-                <div class="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#0c0c0e] via-[#0c0c0e]/95 to-transparent">
+                <!-- Input Zone -->
+                <div class="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-obsidian via-obsidian/95 to-transparent">
                     <div class="max-w-2xl mx-auto">
-                        <div class="relative flex items-center bg-zinc-900/90 border border-white/10 rounded-[2rem] p-2 pr-3 focus-within:border-mystic/50 transition-all shadow-2xl">
-                            <input type="text" id="user-input" placeholder="사건의 내막을 질문하세요..." 
-                                class="flex-grow bg-transparent border-none outline-none px-6 py-4 text-base font-medium placeholder:text-zinc-600">
-                            <button id="send-btn" class="w-12 h-12 bg-mystic rounded-2xl flex items-center justify-center text-black hover:bg-yellow-500 transition-all active:scale-95 shadow-xl shadow-mystic/20">
-                                <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" stroke-width="3"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                                <div id="typing-indicator" class="hidden w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
-                            </button>
+                        <div class="relative group">
+                            <div class="absolute -inset-1 bg-mystic/20 blur-2xl rounded-full opacity-0 group-focus-within:opacity-100 transition-opacity duration-700"></div>
+                            <div class="relative flex items-center bg-zinc-900/90 border border-white/10 rounded-[2.5rem] p-2.5 pr-4 shadow-2xl focus-within:border-mystic/40 transition-all">
+                                <input type="text" id="user-input" placeholder="사건의 내막을 질문하세요..." 
+                                    class="flex-grow bg-transparent border-none outline-none px-8 py-5 text-lg font-medium placeholder:text-zinc-700">
+                                <button id="send-btn" class="w-14 h-14 bg-mystic rounded-[1.5rem] flex items-center justify-center text-black hover:bg-yellow-500 transition-all active:scale-90 shadow-xl shadow-mystic/20 group-hover:shadow-mystic/40">
+                                    <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" stroke-width="3"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                                    <div id="typing-indicator" class="hidden w-5 h-5 border-3 border-black/20 border-t-black rounded-full animate-spin"></div>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -153,13 +158,16 @@
 
         const cases = [
             { id: 1, problem: "한 남자가 음식점에서 바다거북 수프를 주문해 한 입 먹고 자살했다. 왜일까?", truth: "남자는 과거 아내와 조난당해 인육을 먹고 살아남았으나, 진짜 수프 맛이 다른 것을 보고 진실을 깨달아 자살함." },
-            { id: 2, problem: "사막에 한 남자가 알몸으로 죽어 있다. 손에는 부러진 성냥개비가 들려 있다. 왜일까?", truth: "열기구 무게를 줄이기 위해 옷을 다 벗었으나 부족했고, 성냥개비를 뽑아 떨어진 사람이 이 남자였음." },
-            { id: 3, problem: "밤늦게 TV를 보던 여자가 TV를 끄고 잤다. 다음날 뉴스를 보고 절망했다. 왜일까?", truth: "그녀는 등대지기였고, 그녀가 끈 것은 TV가 아니라 등대 불빛이었음. 이로 인해 대형 난파 사고가 발생함." }
+            { id: 2, problem: "사막에 한 남자가 알몸으로 죽어 있다. 손에는 부러진 성냥개비가 들려 있다. 왜일까?", truth: "열기구 무게를 줄이기 위해 옷을 다 벗었으나 부족했고, 성냥개비를 뽑아 가장 짧은 것을 뽑은 사람이 뛰어내리기로 했음. 남자가 당첨되어 뛰어내림." },
+            { id: 3, problem: "밤늦게 TV를 보던 여자가 TV를 끄고 잤다. 다음날 뉴스를 보고 절망했다. 왜일까?", truth: "그녀는 등대지기였고, 그녀가 끈 것은 TV가 아니라 등대 불빛이었음. 이로 인해 대형 난파 사고가 발생함." },
+            { id: 4, problem: "숲속 오두막에서 한 남자가 죽어 있다. 근처에는 53개의 자전거 부품(?)이 흩어져 있다. 왜일까?", truth: "남자는 카드 도박꾼이었고, 상대방이 소매 속에 카드 한 장(53번째 카드)을 숨긴 것을 눈치채고 싸우다 살해당한 것임. (52장인 트럼프 카드에서 53번째 카드 발견)" },
+            { id: 5, problem: "남자가 계단을 오르다 갑자기 절망하며 주저앉았다. 왜일까?", truth: "남자는 시각장애인이었고, 정전이 된 사실을 몰랐다. 평소 엘리베이터를 탔으나 점검 중이라 계단을 올랐는데, 정전 때문에 엘리베이터 층수 표시기가 꺼진 것을 감각으로 느끼고 자신이 평생 앞을 볼 수 없다는 사실을 다시금 절감함." }
         ];
 
         let currentCase = cases[0];
         let engine;
         let chatHistory = [];
+        let progress = 0;
 
         const chatBox = document.getElementById('chat-box');
         const userInput = document.getElementById('user-input');
@@ -168,6 +176,9 @@
         const typingIndicator = document.getElementById('typing-indicator');
         const aiLoading = document.getElementById('ai-loading');
         const loadingStatus = document.getElementById('loading-status');
+        const progressBar = document.getElementById('progress-bar');
+        const progressVal = document.getElementById('progress-val');
+        const statusText = document.getElementById('investigation-status');
 
         async function initAI() {
             try {
@@ -177,84 +188,96 @@
                     {
                         initProgressCallback: (report) => {
                             const p = Math.floor(report.progress * 100);
-                            loadingStatus.innerText = `Learning Investigative Logic... ${p}%`;
+                            loadingStatus.innerText = `Establishing Link... ${p}%`;
                             if (report.progress >= 1) {
                                 setTimeout(() => {
                                     aiLoading.style.opacity = '0';
                                     setTimeout(() => aiLoading.style.display = 'none', 1000);
-                                }, 1000);
+                                }, 1500);
                             }
                         }
                     }
                 );
                 resetGame();
             } catch (err) {
-                loadingStatus.innerText = "Compatibility Error: GPU required.";
+                loadingStatus.innerText = "Compatibility Error: WebGPU required.";
                 console.error(err);
             }
         }
 
         window.randomCase = function() {
             currentCase = cases.filter(c => c.id !== currentCase.id)[Math.floor(Math.random() * (cases.length - 1))];
-            
             const problemEl = document.getElementById('problem-text');
             problemEl.style.opacity = '0';
-            problemEl.style.transform = 'translateY(10px)';
-            
             setTimeout(() => {
                 document.getElementById('case-id-badge').innerText = `Case #${String(currentCase.id).padStart(2, '0')}`;
                 problemEl.innerText = currentCase.problem;
                 problemEl.style.opacity = '1';
-                problemEl.style.transform = 'translateY(0)';
                 resetGame();
             }, 400);
         };
 
+        window.revealTruth = function() {
+            appendMessage('ai', `[수사 종료] 사건의 진실은 다음과 같습니다: \n\n${currentCase.truth}`);
+            updateProgress(100);
+        };
+
+        function updateProgress(newVal) {
+            progress = Math.min(newVal, 100);
+            progressBar.style.width = progress + '%';
+            progressVal.innerText = progress + '%';
+            if (progress > 80) statusText.innerText = "Conclusion Reached";
+            else if (progress > 50) statusText.innerText = "Critical Clue Found";
+            else if (progress > 20) statusText.innerText = "Analyzing Testimonies";
+        }
+
         function resetGame() {
+            progress = 0;
+            updateProgress(0);
+            statusText.innerText = "Initial Site Survey";
             chatBox.innerHTML = `
-                <div class="flex gap-5 max-w-2xl slide-up">
-                    <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                        <div class="w-1.5 h-1.5 bg-mystic rounded-full animate-pulse"></div>
+                <div class="flex gap-6 max-w-2xl slide-up">
+                    <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                        <div class="w-2 h-2 bg-mystic rounded-full animate-pulse shadow-[0_0_10px_#EAB308]"></div>
                     </div>
-                    <div class="space-y-2">
-                        <p class="text-[10px] font-black text-mystic uppercase tracking-widest">AI Master</p>
-                        <div class="bubble-ai p-6 rounded-[2rem] rounded-tl-none text-zinc-300 leading-relaxed text-base font-medium">
-                            "새로운 조사를 시작합니다. 질문을 던져 사건의 진실을 파헤치십시오."
+                    <div class="space-y-3">
+                        <p class="text-[10px] font-black text-mystic uppercase tracking-widest">Bureau Intelligence</p>
+                        <div class="bubble-ai p-7 rounded-[2.5rem] rounded-tl-none text-zinc-300 leading-relaxed text-lg font-medium shadow-2xl">
+                            "새로운 조사를 시작합니다. 당신의 예리한 통찰력으로 진실을 파헤치십시오."
                         </div>
                     </div>
                 </div>
             `;
             chatHistory = [{
                 role: "system",
-                content: `너는 바다거북 스프 게임 마스터야. 상황: ${currentCase.problem} / 진실: ${currentCase.truth}. 규칙: 1. 질문에 오직 '예', '아니오', '관련 없습니다' 중 하나로만 답하라. 2. 핵심 진실에 도달하면 정답임을 알리고 전체 스토리를 설명하라. 3. 한국어로만 답하라.`
+                content: `너는 바다거북 스프 게임 마스터야. 상황: ${currentCase.problem} / 진실: ${currentCase.truth}. 규칙: 1. 질문에 오직 '예', '아니오', '관련 없습니다' 중 하나로만 답하라. 2. 핵심 진실에 도달하면 정답임을 알리고 전체 스토리를 설명하라. 3. 한국어로만 답하라. 불필요한 서술은 하지 마라.`
             }];
         }
 
         function appendMessage(role, text) {
             const div = document.createElement('div');
-            div.className = `flex gap-5 ${role === 'user' ? 'justify-end' : ''} w-full slide-up`;
-            
+            div.className = `flex gap-6 ${role === 'user' ? 'justify-end' : ''} w-full slide-up`;
             const isAI = role === 'ai';
-            const html = isAI ? `
-                <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                    <div class="w-1.5 h-1.5 bg-mystic rounded-full shadow-[0_0_10px_#EAB308]"></div>
+            
+            div.innerHTML = isAI ? `
+                <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 shadow-inner">
+                    <div class="w-2 h-2 bg-mystic rounded-full shadow-[0_0_10px_#EAB308]"></div>
                 </div>
-                <div class="space-y-2">
-                    <p class="text-[10px] font-black text-mystic uppercase tracking-widest">AI Master</p>
-                    <div class="bubble-ai p-6 rounded-[2rem] rounded-tl-none text-zinc-300 leading-relaxed text-base font-medium max-w-xl shadow-2xl">
+                <div class="space-y-3">
+                    <p class="text-[10px] font-black text-mystic uppercase tracking-widest">Bureau Intelligence</p>
+                    <div class="bubble-ai p-7 rounded-[2.5rem] rounded-tl-none text-zinc-300 leading-relaxed text-lg font-medium shadow-2xl max-w-2xl whitespace-pre-wrap">
                         ${text}
                     </div>
                 </div>
             ` : `
-                <div class="space-y-2 text-right">
-                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Investigator</p>
-                    <div class="bubble-user p-5 rounded-[1.8rem] rounded-tr-none text-black leading-relaxed text-base shadow-xl max-w-md">
+                <div class="space-y-3 text-right">
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Special Investigator</p>
+                    <div class="bubble-user p-6 rounded-[2.2rem] rounded-tr-none text-black leading-relaxed text-lg shadow-2xl max-w-md">
                         ${text}
                     </div>
                 </div>
             `;
             
-            div.innerHTML = html;
             chatBox.appendChild(div);
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
         }
@@ -269,14 +292,19 @@
             typingIndicator.classList.remove('hidden');
             
             chatHistory.push({ role: "user", content: val });
+            updateProgress(progress + 7);
 
             try {
                 const chunks = await engine.chat.completions.create({ messages: chatHistory, temperature: 0.1 });
                 const reply = chunks.choices[0].message.content;
                 chatHistory.push({ role: "assistant", content: reply });
                 appendMessage('ai', reply);
+                
+                if (reply.includes("정답") || reply.includes("진실")) {
+                    updateProgress(100);
+                }
             } catch (err) {
-                appendMessage('ai', "Neural Error: " + err.message);
+                appendMessage('ai', "Neural Link Error: " + err.message);
             } finally {
                 sendIcon.classList.remove('hidden');
                 typingIndicator.classList.add('hidden');
