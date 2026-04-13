@@ -13,6 +13,7 @@ export class UIController {
         this.caseBadge = document.getElementById('case-id-badge');
         this.aiLoading = document.getElementById('ai-loading');
         this.loadingStatus = document.getElementById('loading-status');
+        this.successStamp = document.getElementById('success-stamp');
 
         this.initEvents();
         this.syncStateToUI();
@@ -25,8 +26,11 @@ export class UIController {
         }
         const randomBtn = document.getElementById('random-case-btn');
         const revealBtn = document.getElementById('reveal-truth-btn');
+        const hintBtn = document.getElementById('get-hint-btn');
+
         if (randomBtn) randomBtn.onclick = () => this.randomCase();
         if (revealBtn) revealBtn.onclick = () => this.revealTruth();
+        if (hintBtn) hintBtn.onclick = () => this.getHint();
     }
 
     async handleSend() {
@@ -37,27 +41,52 @@ export class UIController {
         this.userInput.value = '';
         
         if (!this.ai.engine) {
-            this.appendMessage('ai', "AI 시스템 초기화 중... 잠시만 기다려 주십시오.");
+            this.appendMessage('ai', "AI 시스템이 조서를 해독 중입니다. 잠시만 대기하십시오.");
             return;
         }
 
         this.setLoading(true);
         gameState.chatHistory.push({ role: "user", content: val });
-        this.updateUIProgress(gameState.progress + 7);
+        this.updateUIProgress(gameState.progress + 5);
 
         try {
             const systemMsg = {
                 role: "system",
-                content: `너는 바다거북 스프 게임 마스터야. 상황: ${gameState.currentCase.problem} / 진실: ${gameState.currentCase.truth}. 규칙: 1. 오직 '예', '아니오', '관련 없습니다' 중 하나로만 답하라. 2. 핵심 진실에 도달하면 정답임을 알리고 전체 스토리를 설명하라. 3. 한국어로만 답하라. 말투는 짧고 명료하게 하라.`
+                content: `너는 바다거북 스프 게임 마스터야. 상황: ${gameState.currentCase.problem} / 진실: ${gameState.currentCase.truth}. 규칙: 1. 오직 '예', '아니오', '관련 없습니다' 중 하나로만 답하라. 2. 핵심 진실에 도달하면 '정답입니다!'라고 외치고 전체 스토리를 설명하라. 3. 한국어로만 답하라. 차갑고 기계적인 말투를 유지하라.`
             };
             const reply = await this.ai.getCompletion([systemMsg, ...gameState.chatHistory]);
             gameState.chatHistory.push({ role: "assistant", content: reply });
             this.appendMessage('ai', reply);
-            if (reply.includes("정답") || reply.includes("진실")) this.updateUIProgress(100);
+            
+            if (reply.includes("정답") || reply.includes("진실")) {
+                this.triggerSuccess();
+            }
         } catch (err) {
-            this.appendMessage('ai', "데이터 오류: " + err.message);
+            this.appendMessage('ai', "Neural linkage error: " + err.message);
         } finally {
             this.setLoading(false);
+        }
+    }
+
+    async getHint() {
+        if (!this.ai.engine) return;
+        this.setLoading(true);
+        const hintPrompt = [
+            { role: "system", content: `너는 조력자다. 상황: ${gameState.currentCase.problem} / 진실: ${gameState.currentCase.truth}. 정답을 알려주지 말고, 수사관이 다음 질문을 던질 수 있도록 아주 미세하고 은유적인 힌트를 한 문장으로 줘.` },
+            ...gameState.chatHistory
+        ];
+        const hint = await this.ai.getCompletion(hintPrompt);
+        this.appendMessage('ai', "[HINT RECEIVED] " + hint);
+        this.setLoading(false);
+    }
+
+    triggerSuccess() {
+        this.updateUIProgress(100);
+        if (this.successStamp) {
+            this.successStamp.classList.add('stamp-animate');
+            setTimeout(() => {
+                this.successStamp.classList.remove('stamp-animate');
+            }, 4000);
         }
     }
 
@@ -68,17 +97,17 @@ export class UIController {
         const isAI = role === 'ai';
         
         div.innerHTML = isAI ? `
-            <div class="w-10 h-10 rounded-sm bg-blood/10 border border-blood/20 flex items-center justify-center flex-shrink-0">
-                <div class="w-1.5 h-1.5 bg-blood animate-pulse"></div>
+            <div class="w-10 h-10 rounded-sm bg-blood/10 border border-blood/20 flex items-center justify-center flex-shrink-0 shadow-inner">
+                <div class="w-1.5 h-1.5 bg-blood animate-pulse shadow-[0_0_10px_#880808]"></div>
             </div>
             <div class="space-y-2">
-                <p class="font-mystery text-[8px] text-mystic/40 uppercase tracking-widest">Intelligence Agent</p>
+                <p class="font-mystery text-[8px] text-mystic/40 uppercase tracking-widest leading-none">Bureau Agent</p>
                 <div class="text-zinc-300 leading-relaxed text-base font-medium max-w-2xl whitespace-pre-wrap font-serif italic">${text}</div>
             </div>
         ` : `
             <div class="space-y-2 text-right">
-                <p class="font-mystery text-[8px] text-zinc-600 uppercase tracking-widest">Investigator</p>
-                <div class="bg-zinc-100 text-black px-5 py-2 rounded-sm text-base font-bold shadow-xl inline-block border-b-2 border-zinc-400">${text}</div>
+                <p class="font-mystery text-[8px] text-zinc-600 uppercase tracking-widest leading-none">Field Investigator</p>
+                <div class="bg-zinc-100 text-black px-5 py-2.5 rounded-sm text-base font-bold shadow-2xl inline-block border-b-2 border-zinc-400">${text}</div>
             </div>
         `;
         
@@ -91,9 +120,10 @@ export class UIController {
         if (this.progressBar) this.progressBar.style.width = p + '%';
         if (this.progressVal) this.progressVal.innerText = p + '%';
         if (this.statusText) {
-            if (p >= 100) this.statusText.innerText = "CONCLUSION REACHED";
-            else if (p > 60) this.statusText.innerText = "BREAKTHROUGH FOUND";
-            else this.statusText.innerText = "PROCESSING CLUES";
+            if (p >= 100) this.statusText.innerText = "CASE ARCHIVED";
+            else if (p > 70) this.statusText.innerText = "BREAKTHROUGH CONFIRMED";
+            else if (p > 30) this.statusText.innerText = "CORRELATING DATA";
+            else this.statusText.innerText = "INTERROGATION PHASE";
         }
     }
 
@@ -131,15 +161,15 @@ export class UIController {
     }
 
     revealTruth() {
-        this.appendMessage('ai', `[CLASSIFIED] 사건의 진실: \n\n${gameState.currentCase.truth}`);
-        this.updateUIProgress(100);
+        this.appendMessage('ai', `[ADMIN OVERRIDE] 사건 파일 해독 완료: \n\n${gameState.currentCase.truth}`);
+        this.triggerSuccess();
     }
 
     resetChat() {
         if (this.chatBox) this.chatBox.innerHTML = '';
         this.updateUIProgress(0);
         if (this.statusText) this.statusText.innerText = "AWAITING INTERROGATION...";
-        this.appendMessage('ai', "조서를 시작합니다. 사건 현장의 단서들을 조합하여 진실을 파헤치십시오.");
+        this.appendMessage('ai', "조서를 시작합니다. 현장의 증거들을 바탕으로 질문을 던지십시오.");
     }
 
     showLoading(progress) {
