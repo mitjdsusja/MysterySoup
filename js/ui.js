@@ -15,7 +15,6 @@ export class UIController {
         this.loadingStatus = document.getElementById('loading-status');
 
         this.initEvents();
-        // Initialize with current game state
         this.syncStateToUI();
     }
 
@@ -38,7 +37,7 @@ export class UIController {
         this.userInput.value = '';
         
         if (!this.ai.engine) {
-            this.appendMessage('ai', "AI 시스템이 아직 초기화 중입니다. 서류 해독이 끝날 때까지 기다려 주십시오.");
+            this.appendMessage('ai', "AI 시스템 초기화 중... 잠시만 기다려 주십시오.");
             return;
         }
 
@@ -49,14 +48,14 @@ export class UIController {
         try {
             const systemMsg = {
                 role: "system",
-                content: `너는 바다거북 스프 게임 마스터야. 상황: ${gameState.currentCase.problem} / 진실: ${gameState.currentCase.truth}. 규칙: 1. 오직 '예', '아니오', '관련 없습니다' 중 하나로만 답하라. 2. 핵심 진실에 도달하면 정답임을 알리고 전체 스토리를 설명하라. 3. 한국어로만 답하라. 분위기는 차분하고 냉철한 수사관 조력자처럼 하라.`
+                content: `너는 바다거북 스프 게임 마스터야. 상황: ${gameState.currentCase.problem} / 진실: ${gameState.currentCase.truth}. 규칙: 1. 오직 '예', '아니오', '관련 없습니다' 중 하나로만 답하라. 2. 핵심 진실에 도달하면 정답임을 알리고 전체 스토리를 설명하라. 3. 한국어로만 답하라. 말투는 짧고 명료하게 하라.`
             };
             const reply = await this.ai.getCompletion([systemMsg, ...gameState.chatHistory]);
             gameState.chatHistory.push({ role: "assistant", content: reply });
             this.appendMessage('ai', reply);
             if (reply.includes("정답") || reply.includes("진실")) this.updateUIProgress(100);
         } catch (err) {
-            this.appendMessage('ai', "데이터 처리 오류: " + err.message);
+            this.appendMessage('ai', "데이터 오류: " + err.message);
         } finally {
             this.setLoading(false);
         }
@@ -65,21 +64,21 @@ export class UIController {
     appendMessage(role, text) {
         if (!this.chatBox) return;
         const div = document.createElement('div');
-        div.className = `flex gap-8 ${role === 'user' ? 'justify-end' : 'justify-start'} w-full fade-in`;
+        div.className = `flex gap-6 ${role === 'user' ? 'justify-end' : 'justify-start'} w-full fade-in`;
         const isAI = role === 'ai';
         
         div.innerHTML = isAI ? `
-            <div class="w-14 h-14 rounded-sm bg-blood/10 border border-blood/20 flex items-center justify-center flex-shrink-0">
-                <div class="w-2 h-2 bg-blood animate-pulse shadow-[0_0_10px_#880808]"></div>
+            <div class="w-10 h-10 rounded-sm bg-blood/10 border border-blood/20 flex items-center justify-center flex-shrink-0">
+                <div class="w-1.5 h-1.5 bg-blood animate-pulse"></div>
             </div>
-            <div class="space-y-3">
-                <p class="font-mystery text-[10px] text-mystic/60 uppercase tracking-widest">Bureau Intelligence Agent</p>
-                <div class="text-zinc-300 leading-relaxed text-xl font-medium max-w-3xl whitespace-pre-wrap font-serif italic">${text}</div>
+            <div class="space-y-2">
+                <p class="font-mystery text-[8px] text-mystic/40 uppercase tracking-widest">Intelligence Agent</p>
+                <div class="text-zinc-300 leading-relaxed text-base font-medium max-w-2xl whitespace-pre-wrap font-serif italic">${text}</div>
             </div>
         ` : `
-            <div class="space-y-3 text-right">
-                <p class="font-mystery text-[10px] text-zinc-600 uppercase tracking-widest">Special Investigator</p>
-                <div class="bg-zinc-100 text-black px-8 py-4 rounded-sm text-xl font-bold shadow-2xl inline-block border-b-4 border-zinc-400">${text}</div>
+            <div class="space-y-2 text-right">
+                <p class="font-mystery text-[8px] text-zinc-600 uppercase tracking-widest">Investigator</p>
+                <div class="bg-zinc-100 text-black px-5 py-2 rounded-sm text-base font-bold shadow-xl inline-block border-b-2 border-zinc-400">${text}</div>
             </div>
         `;
         
@@ -92,10 +91,9 @@ export class UIController {
         if (this.progressBar) this.progressBar.style.width = p + '%';
         if (this.progressVal) this.progressVal.innerText = p + '%';
         if (this.statusText) {
-            if (p >= 100) this.statusText.innerText = "Conclusion Finalized";
-            else if (p > 70) this.statusText.innerText = "Critical Breakthrough";
-            else if (p > 30) this.statusText.innerText = "Connecting Evidence";
-            else this.statusText.innerText = "Processing Testimonies";
+            if (p >= 100) this.statusText.innerText = "CONCLUSION REACHED";
+            else if (p > 60) this.statusText.innerText = "BREAKTHROUGH FOUND";
+            else this.statusText.innerText = "PROCESSING CLUES";
         }
     }
 
@@ -133,22 +131,22 @@ export class UIController {
     }
 
     revealTruth() {
-        this.appendMessage('ai', `[기밀 해제] 사건의 전말은 다음과 같습니다: \n\n${gameState.currentCase.truth}`);
+        this.appendMessage('ai', `[CLASSIFIED] 사건의 진실: \n\n${gameState.currentCase.truth}`);
         this.updateUIProgress(100);
     }
 
     resetChat() {
         if (this.chatBox) this.chatBox.innerHTML = '';
         this.updateUIProgress(0);
-        if (this.statusText) this.statusText.innerText = "Awaiting interrogation start...";
-        this.appendMessage('ai', "조서를 시작합니다, 수사관님. 사건 현장의 단서들을 조합하여 진실을 파헤치십시오.");
+        if (this.statusText) this.statusText.innerText = "AWAITING INTERROGATION...";
+        this.appendMessage('ai', "조서를 시작합니다. 사건 현장의 단서들을 조합하여 진실을 파헤치십시오.");
     }
 
     showLoading(progress) {
         if (!this.aiLoading) return;
         this.aiLoading.classList.remove('hidden');
         if (this.loadingStatus) {
-            this.loadingStatus.innerText = `Establishing Neural Link... ${Math.floor(progress * 100)}%`;
+            this.loadingStatus.innerText = `Establishing Link... ${Math.floor(progress * 100)}%`;
         }
         if (progress >= 1) {
             setTimeout(() => {
