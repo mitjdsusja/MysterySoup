@@ -5,169 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mystery Soup AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        serif: ['Noto Serif KR', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
                     },
                     colors: {
-                        panel: '#111113',
-                        accent: '#EAB308',
-                        border: '#27272a'
+                        zinc: {
+                            950: '#09090b',
+                            900: '#18181b',
+                            800: '#27272a',
+                        }
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #09090b; color: #fafafa; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .app-container { height: 100vh; display: grid; grid-template-columns: 300px 1fr; }
-        @media (max-width: 768px) { .app-container { grid-template-columns: 1fr; } }
+        body { 
+            background-color: #09090b; 
+            color: #ececec; 
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
         
-        .glass-panel { background: rgba(17, 17, 19, 0.8); backdrop-filter: blur(20px); border: 1px solid #27272a; }
-        .sidebar { border-right: 1px solid #27272a; }
-        
-        .mystery-card {
-            background: linear-gradient(145deg, #18181b, #09090b);
-            border: 1px solid #27272a;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        /* Modern Background Grain */
+        .noise {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.02;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3仿真%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        .chat-bubble-ai { background: transparent; border-left: 2px solid #EAB308; }
-        .chat-bubble-user { background: #27272a; border-radius: 18px 18px 2px 18px; }
+        .floating-input-container {
+            background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
 
-        /* Animation */
-        .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .case-card {
+            background: radial-gradient(circle at top left, rgba(255,255,255,0.03) 0%, transparent 50%);
+        }
 
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        .message-fade { animation: messageFade 0.4s ease-out forwards; }
+        @keyframes messageFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="overflow-hidden">
+<body class="selection:bg-yellow-500/30 selection:text-yellow-200">
+    <div class="noise"></div>
 
-    <!-- Loading Screen -->
-    <div id="ai-loading" class="fixed inset-0 z-[100] bg-[#09090b] flex flex-col items-center justify-center p-6">
-        <div class="w-full max-w-md space-y-8 text-center">
-            <div class="relative w-20 h-20 mx-auto">
-                <div class="absolute inset-0 border-4 border-accent/10 rounded-full"></div>
-                <div class="absolute inset-0 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
-            </div>
-            <div class="space-y-2">
-                <h3 class="text-xl font-bold tracking-tight">AI 탐정 마스터 연결 중...</h3>
-                <p id="loading-status" class="text-sm text-zinc-500 font-medium">로컬 신경망 초기화 (0%)</p>
-            </div>
-            <div class="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden">
-                <div id="loading-bar" class="h-full bg-accent w-0 transition-all duration-300"></div>
-            </div>
+    <!-- AI Booting -->
+    <div id="ai-loading" class="fixed inset-0 z-[100] bg-zinc-950 flex flex-col items-center justify-center transition-opacity duration-1000">
+        <div class="w-12 h-12 mb-6 flex gap-1 items-end justify-center">
+            <div class="w-1.5 h-4 bg-zinc-800 animate-[bounce_1s_infinite_0ms]"></div>
+            <div class="w-1.5 h-8 bg-zinc-600 animate-[bounce_1s_infinite_200ms]"></div>
+            <div class="w-1.5 h-6 bg-zinc-400 animate-[bounce_1s_infinite_400ms]"></div>
         </div>
+        <p id="loading-status" class="text-[10px] font-bold uppercase tracking-[0.5em] text-zinc-500">Neural Link Booting</p>
     </div>
 
-    <div class="app-container">
-        <!-- Sidebar: Case Info -->
-        <aside class="sidebar bg-panel p-8 hidden md:flex flex-col">
-            <div class="flex items-center gap-3 mb-12">
-                <div class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-black font-black">M</div>
-                <h1 class="font-bold tracking-tighter text-lg">Mystery Soup AI</h1>
-            </div>
+    <!-- Top Navigation -->
+    <nav class="fixed top-0 inset-x-0 p-8 flex justify-between items-center z-50 pointer-events-none">
+        <div class="flex items-center gap-3 pointer-events-auto group cursor-pointer" onclick="location.reload()">
+            <div class="w-2 h-2 rounded-full bg-yellow-500 group-hover:scale-125 transition-transform"></div>
+            <span class="text-[11px] font-bold uppercase tracking-[0.3em] text-zinc-500 group-hover:text-zinc-200 transition-colors">Mystery Soup AI</span>
+        </div>
+        <button onclick="randomCase()" class="pointer-events-auto px-5 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-white hover:border-zinc-700 transition-all">
+            Shuffle Case
+        </button>
+    </nav>
 
-            <div class="flex-grow space-y-10">
-                <div>
-                    <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-4">현재 사건 정보</label>
-                    <div class="p-5 rounded-2xl bg-zinc-900/50 border border-zinc-800 space-y-4">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs text-zinc-400">사건 번호</span>
-                            <span id="sidebar-case-id" class="text-xs font-bold text-accent">#01</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs text-zinc-400">난이도</span>
-                            <div class="flex gap-0.5">
-                                <div class="w-1 h-3 bg-accent rounded-full"></div>
-                                <div class="w-1 h-3 bg-accent rounded-full"></div>
-                                <div class="w-1 h-3 bg-accent rounded-full"></div>
-                                <div class="w-1 h-3 bg-zinc-700 rounded-full"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-4">수사 진행도</label>
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-[10px] font-bold">
-                            <span class="text-zinc-500">진실 도달률</span>
-                            <span class="text-accent">15%</span>
-                        </div>
-                        <div class="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden">
-                            <div class="h-full bg-accent w-[15%]"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="randomCase()" class="mt-auto w-full py-4 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.001 0 01-15.357-2m15.357 2H15" /></svg>
-                다른 사건 조사하기
-            </button>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="relative flex flex-col bg-[#0c0c0e]">
+    <!-- Content Center -->
+    <main class="relative h-screen flex flex-col items-center pt-32 pb-40 px-6">
+        <div class="w-full max-w-2xl space-y-16">
             
-            <!-- Mobile Header -->
-            <header class="md:hidden flex items-center justify-between p-6 border-b border-zinc-800 bg-panel">
-                <h1 class="font-bold tracking-tighter">Mystery Soup</h1>
-                <button onclick="randomCase()" class="p-2 bg-zinc-900 rounded-lg text-accent"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.001 0 01-15.357-2m15.357 2H15" /></svg></button>
-            </header>
-
-            <!-- Case Display & Chat -->
-            <div class="flex-grow overflow-y-auto p-6 md:p-12 space-y-12">
-                
-                <!-- The Problem Card -->
-                <section class="max-w-3xl mx-auto slide-up">
-                    <div class="mystery-card rounded-[2.5rem] p-10 md:p-16 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-[80px] rounded-full -mr-32 -mt-32"></div>
-                        <div class="relative z-10 space-y-8">
-                            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-[10px] font-black uppercase tracking-widest">
-                                Mystery Case Study
-                            </div>
-                            <h2 id="problem-text" class="text-3xl md:text-5xl font-serif font-black leading-tight text-white italic">
-                                "한 남자가 음식점에서 바다거북 수프를 주문해 한 입 먹고 자살했다. 왜일까?"
-                            </h2>
-                            <div class="flex items-center gap-4 text-zinc-500 text-xs font-bold uppercase tracking-widest">
-                                <span>Reported: 2026.04.13</span>
-                                <div class="w-1 h-1 bg-zinc-700 rounded-full"></div>
-                                <span>Verified Truth</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Chat Stream -->
-                <section id="chat-box" class="max-w-2xl mx-auto space-y-10 pb-32">
-                    <!-- Messages appear here -->
-                </section>
-            </div>
-
-            <!-- Floating Command Bar -->
-            <div class="absolute bottom-0 left-0 right-0 p-6 md:p-12 pointer-events-none">
-                <div class="max-w-2xl mx-auto pointer-events-auto">
-                    <div class="glass-panel rounded-[2rem] p-2 flex items-center shadow-2xl border border-zinc-700/50">
-                        <input type="text" id="user-input" placeholder="사건의 실마리를 질문하세요..." 
-                            class="flex-grow bg-transparent border-none outline-none px-6 py-4 text-base font-medium placeholder:text-zinc-600">
-                        <button id="send-btn" class="w-12 h-12 bg-accent rounded-2xl flex items-center justify-center text-black hover:bg-yellow-500 transition-all active:scale-95 shadow-lg shadow-yellow-900/20">
-                            <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                            <div id="typing-indicator" class="hidden w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
-                        </button>
-                    </div>
+            <!-- Hero Problem Section -->
+            <section id="hero-section" class="space-y-8">
+                <div class="flex items-center gap-4">
+                    <span id="case-id" class="text-[10px] font-black text-yellow-500/50 uppercase tracking-widest">Archive #01</span>
+                    <div class="h-px flex-grow bg-zinc-900"></div>
                 </div>
-            </div>
-        </main>
+                <h2 id="problem-text" class="text-3xl md:text-5xl font-serif font-black leading-[1.15] text-white selection:bg-yellow-500/40">
+                    "한 남자가 음식점에서 바다거북 수프를 주문해 한 입 먹고 자살했다. 왜일까?"
+                </h2>
+            </section>
+
+            <!-- Dialogue Stream -->
+            <section id="chat-box" class="space-y-12 pb-20">
+                <!-- Dialogue flows naturally without heavy boxes -->
+            </section>
+        </div>
+    </main>
+
+    <!-- Floating Command Console -->
+    <div class="fixed bottom-10 inset-x-0 flex justify-center px-6 z-50">
+        <div class="w-full max-w-2xl floating-input-container rounded-[2rem] p-2 flex items-center transition-all focus-within:ring-1 focus-within:ring-white/10">
+            <input type="text" id="user-input" placeholder="사건의 내막을 질문하세요..." 
+                class="flex-grow bg-transparent border-none outline-none px-6 py-4 text-base font-medium placeholder:text-zinc-700">
+            <button id="send-btn" class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-zinc-950 hover:bg-zinc-200 transition-all active:scale-90 shadow-lg">
+                <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                <div id="typing-indicator" class="hidden w-4 h-4 border-2 border-zinc-900/20 border-t-zinc-900 rounded-full animate-spin"></div>
+            </button>
+        </div>
     </div>
 
     <script type="module">
@@ -190,18 +139,15 @@
         const typingIndicator = document.getElementById('typing-indicator');
         const aiLoading = document.getElementById('ai-loading');
         const loadingStatus = document.getElementById('loading-status');
-        const loadingBar = document.getElementById('loading-bar');
 
         async function initAI() {
             try {
                 engine = await webllm.CreateWebWorkerEngine(
-                    new Worker(new WorkerURL()),
+                    new Worker(URL.createObjectURL(new Blob([`importScripts("https://esm.run/@mlc-ai/web-llm/dist/worker.js");`], { type: "text/javascript" }))),
                     "gemma-2b-it-q4f16_1-MLC",
                     {
                         initProgressCallback: (report) => {
-                            const p = Math.floor(report.progress * 100);
-                            loadingBar.style.width = p + '%';
-                            loadingStatus.innerText = `수사 매뉴얼 학습 중... ${p}%`;
+                            loadingStatus.innerText = `Learning Logic... ${Math.floor(report.progress * 100)}%`;
                             if (report.progress >= 1) {
                                 setTimeout(() => aiLoading.style.opacity = '0', 500);
                                 setTimeout(() => aiLoading.style.display = 'none', 1500);
@@ -211,29 +157,23 @@
                 );
                 resetGame();
             } catch (err) {
-                loadingStatus.innerText = "GPU를 찾을 수 없습니다. (환경 확인 필요)";
+                loadingStatus.innerText = "Check Browser/GPU Compatibility";
                 console.error(err);
             }
         }
 
-        function WorkerURL() {
-            const content = `importScripts("https://esm.run/@mlc-ai/web-llm/dist/worker.js");`;
-            return URL.createObjectURL(new Blob([content], { type: "text/javascript" }));
-        }
-
         window.randomCase = function() {
             currentCase = cases.filter(c => c.id !== currentCase.id)[Math.floor(Math.random() * (cases.length - 1))];
-            
-            document.getElementById('sidebar-case-id').innerText = `#0${currentCase.id}`;
+            document.getElementById('case-id').innerText = `Archive #0${currentCase.id}`;
             document.getElementById('problem-text').innerText = currentCase.problem;
             resetGame();
         };
 
         function resetGame() {
             chatBox.innerHTML = `
-                <div class="chat-bubble-ai p-6 slide-up">
-                    <p class="text-[10px] font-black text-accent uppercase tracking-widest mb-3 text-left">AI Master</p>
-                    <p class="text-zinc-300 leading-relaxed font-medium">안녕하십니까, 탐정님. 사건 현장 조사를 시작하시겠습니까? 질문을 주시면 제가 알고 있는 사실에 기반하여 <b>예, 아니오, 관련 없음</b>으로 답변드리겠습니다.</p>
+                <div class="message-fade space-y-3">
+                    <p class="text-[10px] font-bold text-yellow-500/60 uppercase tracking-widest">AI Master</p>
+                    <p class="text-zinc-400 text-lg leading-relaxed font-medium">조사를 시작합니다. 질문을 던져주십시오. (예/아니오 답변 가능)</p>
                 </div>
             `;
             chatHistory = [{
@@ -244,18 +184,17 @@
 
         function appendMessage(role, text) {
             const div = document.createElement('div');
-            div.className = `w-full flex ${role === 'user' ? 'justify-end' : 'justify-start'} slide-up`;
+            div.className = `message-fade space-y-3 ${role === 'user' ? 'text-right' : 'text-left'}`;
             
             const content = role === 'user' 
-                ? `<div class="chat-bubble-user p-5 text-white text-sm font-medium max-w-md shadow-xl">${text}</div>`
-                : `<div class="chat-bubble-ai p-6 w-full max-w-2xl">
-                    <p class="text-[10px] font-black text-accent uppercase tracking-widest mb-3">AI Master</p>
-                    <p class="text-zinc-300 leading-relaxed font-medium">${text}</p>
-                   </div>`;
+                ? `<p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Investigator</p>
+                   <p class="text-white text-xl font-semibold leading-snug">${text}</p>`
+                : `<p class="text-[10px] font-bold text-yellow-500/60 uppercase tracking-widest">AI Master</p>
+                   <p class="text-zinc-400 text-lg leading-relaxed font-medium italic font-serif">${text}</p>`;
             
             div.innerHTML = content;
             chatBox.appendChild(div);
-            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
 
         async function handleSend() {
@@ -275,7 +214,7 @@
                 chatHistory.push({ role: "assistant", content: reply });
                 appendMessage('ai', reply);
             } catch (err) {
-                appendMessage('ai', "데이터 처리 오류: " + err.message);
+                appendMessage('ai', "Link Error: " + err.message);
             } finally {
                 sendIcon.classList.remove('hidden');
                 typingIndicator.classList.add('hidden');
