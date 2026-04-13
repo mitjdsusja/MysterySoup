@@ -5,7 +5,9 @@ const ai = new AIEngine();
 const ui = new UIController(ai);
 
 // Initialize AI in the background
-document.addEventListener('DOMContentLoaded', () => {
+// We don't wait for DOMContentLoaded here if the script is type="module" at the end of body,
+// but it's safer to have it.
+window.addEventListener('load', () => {
     ai.init((report) => {
         ui.showLoading(report.progress);
     });

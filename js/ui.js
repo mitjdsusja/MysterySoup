@@ -15,13 +15,19 @@ export class UIController {
         this.loadingStatus = document.getElementById('loading-status');
 
         this.initEvents();
+        // Initialize the first view
+        this.resetChat();
     }
 
     initEvents() {
-        this.sendBtn.addEventListener('click', () => this.handleSend());
-        this.userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.handleSend();
-        });
+        if (this.sendBtn) {
+            this.sendBtn.addEventListener('click', () => this.handleSend());
+        }
+        if (this.userInput) {
+            this.userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.handleSend();
+            });
+        }
     }
 
     async handleSend() {
@@ -61,6 +67,7 @@ export class UIController {
     }
 
     appendMessage(role, text) {
+        if (!this.chatBox) return;
         const div = document.createElement('div');
         div.className = `flex gap-6 ${role === 'user' ? 'justify-end' : ''} w-full slide-up`;
         const isAI = role === 'ai';
@@ -90,24 +97,26 @@ export class UIController {
 
     updateUIProgress(newVal) {
         const p = updateProgress(newVal);
-        this.progressBar.style.width = p + '%';
-        this.progressVal.innerText = p + '%';
+        if (this.progressBar) this.progressBar.style.width = p + '%';
+        if (this.progressVal) this.progressVal.innerText = p + '%';
         
-        if (p > 80) this.statusText.innerText = "Conclusion Reached";
-        else if (p > 50) this.statusText.innerText = "Critical Clue Found";
-        else if (p > 20) this.statusText.innerText = "Analyzing Testimonies";
+        if (this.statusText) {
+            if (p > 80) this.statusText.innerText = "Conclusion Reached";
+            else if (p > 50) this.statusText.innerText = "Critical Clue Found";
+            else if (p > 20) this.statusText.innerText = "Analyzing Testimonies";
+        }
     }
 
     setLoading(isLoading) {
         const icon = document.getElementById('send-icon');
         const spinner = document.getElementById('typing-indicator');
         if (isLoading) {
-            icon.classList.add('hidden');
-            spinner.classList.remove('hidden');
+            if (icon) icon.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
             this.sendBtn.disabled = true;
         } else {
-            icon.classList.remove('hidden');
-            spinner.classList.add('hidden');
+            if (icon) icon.classList.remove('hidden');
+            if (spinner) spinner.classList.add('hidden');
             this.sendBtn.disabled = false;
         }
     }
@@ -117,13 +126,15 @@ export class UIController {
         const nextCase = otherCases[Math.floor(Math.random() * otherCases.length)];
         setCurrentCase(nextCase);
 
-        this.problemText.style.opacity = '0';
-        setTimeout(() => {
-            this.caseBadge.innerText = `Case #${String(nextCase.id).padStart(2, '0')}`;
-            this.problemText.innerText = nextCase.problem;
-            this.problemText.style.opacity = '1';
-            this.resetChat();
-        }, 400);
+        if (this.problemText) {
+            this.problemText.style.opacity = '0';
+            setTimeout(() => {
+                if (this.caseBadge) this.caseBadge.innerText = `Case #${String(nextCase.id).padStart(2, '0')}`;
+                this.problemText.innerText = nextCase.problem;
+                this.problemText.style.opacity = '1';
+                this.resetChat();
+            }, 400);
+        }
     }
 
     revealTruth() {
@@ -132,15 +143,18 @@ export class UIController {
     }
 
     resetChat() {
-        this.chatBox.innerHTML = '';
+        if (this.chatBox) this.chatBox.innerHTML = '';
         this.updateUIProgress(0);
-        this.statusText.innerText = "Initial Site Survey";
-        this.appendMessage('ai', "새로운 조사를 시작합니다. 당신의 통찰력으로 진실을 파헤치십시오.");
+        if (this.statusText) this.statusText.innerText = "Initial Site Survey";
+        this.appendMessage('ai', "조사를 시작합니다, 수사관님. 당신의 통찰력으로 진실을 파헤치십시오.");
     }
 
     showLoading(progress) {
+        if (!this.aiLoading) return;
         this.aiLoading.classList.remove('hidden');
-        this.loadingStatus.innerText = `Establishing Link... ${Math.floor(progress * 100)}%`;
+        if (this.loadingStatus) {
+            this.loadingStatus.innerText = `Establishing Link... ${Math.floor(progress * 100)}%`;
+        }
         if (progress >= 1) {
             setTimeout(() => {
                 this.aiLoading.style.opacity = '0';
