@@ -3,24 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mystery Soup AI | 로컬 AI 추리 게임</title>
+    <title>Mystery Soup AI | Immersive Mystery Experience</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        mystery: ['Special Elite', 'cursive'],
-                        serif: ['Noto Serif KR', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'Noto Serif KR', 'serif'],
                     },
                     colors: {
-                        detective: {
-                            black: '#0a0a0a',
-                            paper: '#f4f1ea',
-                            gold: '#d4af37',
-                            blood: '#880808'
+                        brand: {
+                            gold: '#EAB308',
+                            dark: '#050505',
+                            accent: '#3B82F6'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-up': 'fadeUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
                         }
                     }
                 }
@@ -28,115 +37,178 @@
         }
     </script>
     <style>
-        .typing-effect::after { content: '|'; animation: blink 1s infinite; }
+        body { background-color: #050505; color: #e2e8f0; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-dark { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .glow-gold { box-shadow: 0 0 20px rgba(234, 179, 8, 0.15); }
+        .gradient-bg {
+            background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.05), transparent 40%),
+                        radial-gradient(circle at bottom right, rgba(234, 179, 8, 0.05), transparent 40%);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        .typing-cursor::after { content: ''; display: inline-block; width: 2px; height: 1em; background: currentColor; margin-left: 2px; animation: blink 1s infinite; vertical-align: middle; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .detective-shadow { box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); }
     </style>
 </head>
-<body class="bg-detective-black text-slate-300 font-serif min-h-screen flex flex-col overflow-hidden">
+<body class="font-sans antialiased overflow-hidden min-h-screen gradient-bg">
 
-    <!-- Background Texture -->
-    <div class="fixed inset-0 pointer-events-none opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+    <!-- Ambient Glows -->
+    <div class="fixed top-[-10%] -left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] pointer-events-none rounded-full"></div>
+    <div class="fixed bottom-[-10%] -right-[-10%] w-[40%] h-[40%] bg-yellow-600/10 blur-[120px] pointer-events-none rounded-full"></div>
 
-    <!-- Navigation / Header -->
-    <header class="relative z-10 border-b border-white/5 py-6 px-8 flex justify-between items-center bg-black/40">
-        <h1 class="font-mystery text-2xl tracking-tighter text-detective-gold">MYSTERY SOUP AI</h1>
-        <div class="flex gap-6 text-xs uppercase tracking-widest font-bold text-slate-500">
-            <span class="hover:text-detective-gold cursor-pointer">Case Files</span>
-            <span class="hover:text-detective-gold cursor-pointer">Archive</span>
-            <span class="text-detective-blood">Live Case</span>
-        </div>
-    </header>
-
-    <!-- Main Game Container -->
-    <main class="relative z-10 flex-grow flex flex-col md:flex-row overflow-hidden">
-        
-        <!-- Left: Case Details (The Problem) -->
-        <section class="w-full md:w-1/3 p-8 border-r border-white/5 flex flex-col gap-8 overflow-y-auto">
-            <div class="glass-panel p-8 rounded-2xl detective-shadow">
-                <div class="flex justify-between items-start mb-6">
-                    <span class="text-[10px] bg-detective-blood/20 text-detective-blood px-2 py-1 rounded font-bold uppercase tracking-tighter border border-detective-blood/30">Active Case #0413</span>
-                    <span class="text-xs text-slate-500 font-mystery">Difficulty: ★★★★☆</span>
+    <div class="relative z-10 flex flex-col h-screen">
+        <!-- Modern Header -->
+        <header class="flex items-center justify-between px-8 py-5 border-b border-white/5 glass-dark">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-brand-gold to-yellow-600 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-900/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
-                <h2 class="text-2xl font-bold text-white mb-4 leading-tight">바다거북 수프 (Sea Turtle Soup)</h2>
-                <p id="problem-text" class="text-lg leading-relaxed text-slate-400 italic">
-                    "한 남자가 음식점에서 바다거북 수프를 주문해 한 입 먹었다. 그는 주방장을 불러 '이것이 진짜 바다거북 수프입니까?'라고 물었고, 주방장이 '네, 그렇습니다.'라고 대답하자 남자는 집으로 돌아가 자살했다. 왜일까?"
-                </p>
+                <h1 class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">MYSTERY SOUP <span class="text-brand-gold font-serif italic ml-1">AI</span></h1>
             </div>
+            <nav class="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
+                <a href="#" class="hover:text-white transition-colors">Case Files</a>
+                <a href="#" class="hover:text-white transition-colors">Hall of Fame</a>
+                <button class="px-5 py-2.5 rounded-full border border-white/10 hover:bg-white/5 transition-all text-brand-gold border-brand-gold/30">Connect Wallet</button>
+            </nav>
+        </header>
 
-            <!-- Ad Slot (Sidebar) -->
-            <div class="w-full aspect-square glass-panel rounded-xl flex items-center justify-center border border-dashed border-white/10 opacity-50">
-                <p class="text-[10px] uppercase tracking-[0.2em] text-slate-600">Confidential Ad Space</p>
-            </div>
-        </section>
-
-        <!-- Right: The Interrogation (The Chat) -->
-        <section class="flex-grow flex flex-col bg-black/20 overflow-hidden relative">
+        <!-- Main Content -->
+        <main class="flex-grow flex flex-col md:flex-row overflow-hidden p-4 gap-4">
             
-            <!-- AI Loading Overlay (WebLLM Progress) -->
-            <div id="ai-loading" class="absolute inset-0 z-50 bg-detective-black flex flex-col items-center justify-center p-12 transition-all duration-1000">
-                <div class="w-24 h-24 mb-8 relative">
-                    <div class="absolute inset-0 border-4 border-detective-gold/20 rounded-full"></div>
-                    <div id="loading-spinner" class="absolute inset-0 border-4 border-detective-gold rounded-full border-t-transparent animate-spin"></div>
+            <!-- Left: Problem Panel -->
+            <section class="w-full md:w-[380px] lg:w-[450px] flex flex-col gap-4 flex-shrink-0 overflow-y-auto">
+                <div class="glass p-8 rounded-[2rem] flex flex-col gap-6">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-full border border-red-500/20">Active Investigation</span>
+                        <div class="flex gap-1 text-brand-gold">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-700" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <h2 class="text-3xl font-serif font-bold text-white leading-tight italic">Sea Turtle Soup</h2>
+                        <div class="w-12 h-1 bg-brand-gold rounded-full"></div>
+                        <p id="problem-text" class="text-lg leading-relaxed text-slate-300 font-serif italic first-letter:text-4xl first-letter:font-serif first-letter:mr-2 first-letter:float-left">
+                            "한 남자가 음식점에서 바다거북 수프를 주문해 한 입 먹었다. 그는 주방장을 불러 '이것이 진짜 바다거북 수프입니까?'라고 물었고, 주방장이 '네, 그렇습니다.'라고 대답하자 남자는 집으로 돌아가 자살했다. 왜일까?"
+                        </p>
+                    </div>
+                    <div class="mt-4 p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Initial Context</p>
+                        <p class="text-xs text-slate-400 leading-relaxed">남자는 바다거북 수프의 맛에 대해 극도로 민감한 상태였습니다. 주방장의 대답은 그에게 확인 사살과 같은 절망을 안겨주었습니다.</p>
+                    </div>
                 </div>
-                <h3 class="font-mystery text-xl text-detective-gold mb-2">Analyzing Evidence...</h3>
-                <p class="text-xs text-slate-500 uppercase tracking-widest mb-8">Loading Local Intelligence (WebLLM)</p>
-                <div class="w-64 h-1 bg-white/5 rounded-full overflow-hidden">
-                    <div id="loading-bar" class="h-full bg-detective-gold w-0 transition-all duration-300"></div>
-                </div>
-                <p id="loading-status" class="mt-4 text-[10px] font-mono text-slate-600">Model: Gemma-2b-it-q4f16_1-MLC (0%)</p>
-            </div>
 
-            <!-- Chat Messages -->
-            <div id="chat-box" class="flex-grow overflow-y-auto p-8 space-y-6 scroll-smooth">
-                <!-- System Message -->
-                <div class="flex flex-col items-center py-10">
-                    <div class="w-px h-12 bg-gradient-to-b from-transparent to-white/10 mb-4"></div>
-                    <p class="text-xs text-slate-500 uppercase tracking-[0.3em]">Interrogation Started</p>
+                <!-- Ad Unit -->
+                <div class="glass p-6 rounded-[2rem] flex flex-col items-center justify-center min-h-[200px] border-dashed border-white/10 opacity-40">
+                    <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Sponsored Unit</span>
                 </div>
+            </section>
+
+            <!-- Right: Interactive Chat Panel -->
+            <section class="flex-grow glass rounded-[2.5rem] flex flex-col relative overflow-hidden shadow-2xl">
                 
-                <!-- Welcome Message -->
-                <div class="flex gap-4 max-w-2xl">
-                    <div class="w-10 h-10 rounded-lg bg-detective-gold/10 flex items-center justify-center text-detective-gold border border-detective-gold/20 flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                <!-- Advanced Loading Layer -->
+                <div id="ai-loading" class="absolute inset-0 z-50 glass-dark flex flex-col items-center justify-center p-12 transition-all duration-1000">
+                    <div class="w-32 h-32 mb-10 relative">
+                        <div class="absolute inset-0 border-[1px] border-brand-gold/20 rounded-full animate-ping"></div>
+                        <div class="absolute inset-0 border-[1px] border-brand-gold/10 rounded-full scale-150 animate-pulse"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-16 h-16 bg-brand-gold/10 backdrop-blur-md rounded-full flex items-center justify-center border border-brand-gold/30">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-brand-gold animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                            </div>
+                        </div>
                     </div>
-                    <div class="glass-panel p-5 rounded-2xl rounded-tl-none border-detective-gold/10">
-                        <p class="text-slate-300 leading-relaxed">안녕하십니까, 탐정님. 저는 이 사건의 모든 진실을 알고 있는 조력자 AI입니다. 제게 질문을 던져 사건의 실마리를 풀어보세요. 저는 오직 <b>예, 아니오, 관련 없음</b>으로만 대답할 수 있습니다.</p>
+                    <h3 class="text-2xl font-extrabold text-white tracking-tight mb-3">Initializing Neural Network</h3>
+                    <p class="text-sm text-slate-500 font-bold uppercase tracking-[0.4em] mb-12">Private Local Inference</p>
+                    
+                    <div class="w-72 space-y-4">
+                        <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div id="loading-bar" class="h-full bg-brand-gold w-0 transition-all duration-500 ease-out"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-mono text-slate-500 uppercase tracking-widest">
+                            <span id="loading-status">Model: Gemma-2b-it</span>
+                            <span id="loading-percent">0%</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Input Area -->
-            <div class="p-8 bg-black/40 border-t border-white/5">
-                <div class="max-w-4xl mx-auto flex gap-4">
-                    <input type="text" id="user-input" placeholder="사건에 대해 질문하세요..." class="flex-grow bg-white/5 border border-white/10 rounded-xl px-6 py-4 outline-none focus:border-detective-gold/50 transition-all font-serif">
-                    <button id="send-btn" class="bg-detective-gold hover:bg-yellow-600 text-detective-black font-extrabold px-8 py-4 rounded-xl transition-all uppercase tracking-widest text-sm flex items-center gap-2">
-                        Send
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                    </button>
+                <!-- Chat Display -->
+                <div id="chat-box" class="flex-grow overflow-y-auto p-10 space-y-8">
+                    <!-- System Start -->
+                    <div class="flex flex-col items-center py-6 opacity-40">
+                        <div class="w-px h-16 bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+                        <span class="text-[10px] font-bold uppercase tracking-[0.5em] mt-4">Commencing Interrogation</span>
+                    </div>
+
+                    <!-- AI Welcome -->
+                    <div class="flex gap-6 max-w-3xl animate-fade-up">
+                        <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                            <div class="w-2 h-2 bg-brand-gold rounded-full animate-pulse"></div>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-[10px] font-bold text-brand-gold uppercase tracking-widest">Artificial Intelligence</p>
+                            <div class="text-slate-300 leading-relaxed text-lg font-medium">
+                                "안녕하십니까, 탐정님. 저는 이 사건의 모든 실마리를 품고 있는 조력자입니다. 질문을 통해 숨겨진 진실을 파헤쳐 보십시오. 제 답변은 <b>예, 아니오, 관련 없음</b> 중 하나일 것입니다."
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="max-w-4xl mx-auto mt-4 flex justify-between items-center text-[10px] text-slate-600 font-bold uppercase tracking-widest">
-                    <span>Questions Remaining: <span class="text-slate-400">10</span></span>
-                    <button class="text-detective-gold hover:underline">Get Hint (Watch Ad)</button>
+
+                <!-- Modern Input Interface -->
+                <div class="p-10 glass-dark">
+                    <div class="max-w-4xl mx-auto">
+                        <div class="relative flex items-center">
+                            <input type="text" id="user-input" placeholder="사건의 내막을 질문하세요..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] pl-8 pr-32 py-6 outline-none focus:bg-white/10 focus:border-brand-gold/40 transition-all text-lg font-medium shadow-inner">
+                            <button id="send-btn" class="absolute right-3 px-8 py-4 bg-brand-gold hover:bg-yellow-500 text-black font-extrabold rounded-[1.5rem] transition-all transform active:scale-95 shadow-xl shadow-yellow-900/20 flex items-center gap-2 group uppercase tracking-widest text-xs">
+                                Submit
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </button>
+                        </div>
+                        <div class="mt-6 flex justify-between items-center px-4">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Inference Quota</span>
+                                <div class="flex gap-1">
+                                    <div class="w-1.5 h-1.5 bg-brand-gold rounded-full"></div>
+                                    <div class="w-1.5 h-1.5 bg-brand-gold rounded-full"></div>
+                                    <div class="w-1.5 h-1.5 bg-brand-gold rounded-full"></div>
+                                    <div class="w-1.5 h-1.5 bg-white/10 rounded-full"></div>
+                                    <div class="w-1.5 h-1.5 bg-white/10 rounded-full"></div>
+                                </div>
+                            </div>
+                            <button class="text-[10px] font-black text-brand-gold uppercase tracking-[0.2em] hover:text-white transition-colors flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                Reveal Hidden Clue
+                            </button>
+                        </div>
+                    </div>
                 </div>
+            </section>
+        </main>
+
+        <!-- Minimal Footer -->
+        <footer class="flex items-center justify-center h-16 border-t border-white/5 px-8 text-[9px] font-bold uppercase tracking-[0.4em] text-slate-600">
+            <div class="flex gap-12">
+                <span>© 2026 Mystery Soup Engine</span>
+                <span class="hidden md:inline">Processing locally via WebGPU</span>
+                <span class="text-slate-800">Private & Secure Encryption</span>
             </div>
-        </section>
-    </main>
+        </footer>
+    </div>
 
-    <!-- Footer Ad Banner -->
-    <footer class="relative z-10 border-t border-white/5 h-20 flex items-center justify-center bg-black/60">
-        <div class="w-full max-w-4xl h-12 bg-white/5 rounded-lg border border-dashed border-white/10 flex items-center justify-center">
-            <span class="text-[10px] text-slate-700 uppercase tracking-[0.5em]">Global Ad Banner Placement</span>
-        </div>
-    </footer>
-
-    <!-- WebLLM Scripts -->
+    <!-- WebLLM Integration Logic -->
     <script type="module">
         import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 
         const loadingBar = document.getElementById('loading-bar');
         const loadingStatus = document.getElementById('loading-status');
+        const loadingPercent = document.getElementById('loading-percent');
         const aiLoading = document.getElementById('ai-loading');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
@@ -145,7 +217,6 @@
         const selectedModel = "gemma-2b-it-q4f16_1-MLC";
         let engine;
 
-        // 시스템 프롬프트: 바다거북 스프 게임의 룰을 정의합니다.
         const systemPrompt = `
             너는 지금부터 '바다거북 스프' 게임의 마스터야. 
             상황: 한 남자가 음식점에서 바다거북 수프를 주문해 한 입 먹었다. 그는 주방장을 불러 '이것이 진짜 바다거북 수프입니까?'라고 물었고, 주방장이 '네, 그렇습니다.'라고 대답하자 남자는 집으로 돌아가 자살했다.
@@ -153,8 +224,8 @@
 
             너의 역할:
             1. 사용자의 질문에 대해 오직 '예', '아니오', '관련 없습니다' 중 하나로만 대답한다.
-            2. 사용자가 진실에 도달하면 '정답입니다! 사건의 진실은 이렇습니다...' 라며 전체 스토리를 설명해준다.
-            3. 잡담이나 추가 설명은 절대 하지 않는다.
+            2. 사용자가 진실(인육, 아내의 고기, 조난 당시의 거짓말 등)에 도달하면 '정답입니다! 사건의 진실은 이렇습니다...' 라며 전체 스토리를 설명해준다.
+            3. 절대 너의 역할을 벗어나 잡담을 하지 마라. 한국어로 대답하라.
         `;
 
         async function initAI() {
@@ -166,10 +237,12 @@
                         initProgressCallback: (report) => {
                             const progress = Math.floor(report.progress * 100);
                             loadingBar.style.width = progress + '%';
-                            loadingStatus.innerText = `${report.text} (${progress}%)`;
+                            loadingPercent.innerText = `${progress}%`;
+                            loadingStatus.innerText = report.text.split(']')[1] || report.text;
+                            
                             if (progress >= 100) {
                                 setTimeout(() => {
-                                    aiLoading.style.opacity = '0';
+                                    aiLoading.style.transform = 'translateY(-100%)';
                                     setTimeout(() => aiLoading.style.display = 'none', 1000);
                                 }, 1000);
                             }
@@ -177,23 +250,27 @@
                     }
                 );
             } catch (err) {
-                loadingStatus.innerText = "Error: " + err.message;
+                loadingStatus.innerText = "Compatibility Error";
                 loadingStatus.classList.add('text-red-500');
+                console.error(err);
             }
         }
 
         function appendMessage(role, text) {
             const wrapper = document.createElement('div');
-            wrapper.className = `flex gap-4 ${role === 'user' ? 'justify-end' : ''} max-w-2xl ${role === 'user' ? 'ml-auto' : ''} animate-fade-in`;
+            wrapper.className = `flex gap-6 ${role === 'user' ? 'justify-end' : ''} w-full animate-fade-up`;
             
             const isAI = role === 'ai';
             const html = `
                 ${isAI ? `
-                    <div class="w-10 h-10 rounded-lg bg-detective-gold/10 flex items-center justify-center text-detective-gold border border-detective-gold/20 flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                    <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                        <div class="w-2 h-2 bg-brand-gold rounded-full"></div>
                     </div>` : ''}
-                <div class="glass-panel p-5 rounded-2xl ${isAI ? 'rounded-tl-none border-detective-gold/10' : 'rounded-tr-none bg-detective-gold text-detective-black border-none'}">
-                    <p class="leading-relaxed font-medium whitespace-pre-wrap">${text}</p>
+                <div class="space-y-2 ${role === 'user' ? 'text-right' : ''}">
+                    <p class="text-[10px] font-bold ${isAI ? 'text-brand-gold' : 'text-slate-500'} uppercase tracking-widest">${isAI ? 'AI Assistant' : 'Investigator'}</p>
+                    <div class="${isAI ? 'text-slate-300' : 'bg-brand-gold text-black px-6 py-4 rounded-[1.5rem] rounded-tr-none shadow-lg'} leading-relaxed text-lg font-medium max-w-2xl">
+                        ${text}
+                    </div>
                 </div>
             `;
             wrapper.innerHTML = html;
@@ -217,13 +294,13 @@
             try {
                 const chunks = await engine.chat.completions.create({
                     messages: chatHistory,
-                    temperature: 0.1, // 보수적인 답변 유도 (예/아니오)
+                    temperature: 0.1,
                 });
                 const reply = chunks.choices[0].message.content;
                 chatHistory.push({ role: "assistant", content: reply });
                 appendMessage('ai', reply);
             } catch (err) {
-                appendMessage('ai', "통신 오류가 발생했습니다: " + err.message);
+                appendMessage('ai', "Neural linkage failed: " + err.message);
             } finally {
                 sendBtn.disabled = false;
                 sendBtn.classList.remove('opacity-50');
